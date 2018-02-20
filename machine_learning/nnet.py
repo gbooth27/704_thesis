@@ -6,6 +6,7 @@ from keras import optimizers
 from keras.models import load_model
 import machine_learning.generate_basis as wave
 import tensorflow as tf
+import scipy as sp
 
 
 
@@ -27,6 +28,11 @@ def energy(y_true, y_pred):
     psi.weights[y_true] = y_pred
     un_norm = np.dot(np.dot(psi.weights.T, psi.Hamiltonian.toarray()), psi.weights)[0][0]
     norm = un_norm/np.dot(psi.weights.T, psi.weights)[0][0]
+    return norm
+
+def min_energy(p):
+    un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
+    norm = un_norm / np.dot(p.T, p)
     return norm
 
 
@@ -81,4 +87,6 @@ def run_nnet(x, gpu, m):
     return model
 
 if __name__ == '__main__':
-    run_nnet(psi.basis, True, "")
+    #run_nnet(psi.basis, True, "")
+    min = sp.optimize.minimize(min_energy, psi.weights)
+    print(min)
