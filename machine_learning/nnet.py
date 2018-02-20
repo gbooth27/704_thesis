@@ -1,11 +1,13 @@
 from keras.models import Sequential
 from keras.layers import Dense
-import keras
 from keras.layers import Dropout
 from keras.layers import LSTM
 from keras import optimizers
 from keras.models import load_model
 import machine_learning.generate_basis as wave
+import tensorflow as tf
+
+
 
 import numpy as np
 import argparse
@@ -20,6 +22,9 @@ def energy(y_true, y_pred):
     :param y_pred:
     :return:
     """
+    sess = tf.InteractiveSession()
+    y= y_true.eval()
+    psi.weights[y_true] = y_pred
     un_norm = np.dot(np.dot(psi.weights.T, psi.Hamiltonian.toarray()), psi.weights)[0][0]
     norm = un_norm/np.dot(psi.weights.T, psi.weights)[0][0]
     return norm
@@ -41,7 +46,7 @@ def run_nnet(x, gpu, m):
     :param gpu:use gpu optimization
     :return: model
     """
-    y = psi.weights
+    y = [i for i in range(len(psi.weights))]
     if m != "":
         # load the model so that we can continue training
         model = load_model(m)
@@ -52,9 +57,9 @@ def run_nnet(x, gpu, m):
         dim2 = len(x[0])
         # Add the layers.
         # Tuning
-        model.add(keras.layers.SimpleRNN(dim1, input_dim=dim2, kernel_initializer='random_uniform', activation='relu', return_sequences = True))
+        model.add(Dense(dim1, input_dim=dim2, kernel_initializer='random_uniform', activation='relu'))
         #model.add(Dense(400, kernel_initializer='random_uniform', activation='relu'))
-        model.add(keras.layers.SimpleRNN(200, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(200, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dense(1, kernel_initializer='random_uniform'))
 
 
