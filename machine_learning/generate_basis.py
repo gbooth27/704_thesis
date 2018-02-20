@@ -8,7 +8,7 @@ class Psi(object):
         self.basis = self.generate()
         self.weights = self.gen_weights()
 
-    def recusive_gen(self, state, index, S):
+    def recusive_gen(self, state, index, S, state_dict):
         """
         recursively generates all possible combos of state basis vectors
         :param state: initial state (all zeros)
@@ -20,12 +20,19 @@ class Psi(object):
             return S
         else:
             # append the current state
-            S.append(state)
+            if str(state) not in state_dict:
+                S.append(list(state))
+                state_dict[str(state)] = True
             # recursively generate without bit flip
-            self.recusive_gen(list(state), index+1, S)
+            self.recusive_gen(list(state), index+1, S, state_dict)
             # flip bit then recursively generate
             state[index] = 1
-            self.recusive_gen(list(state), index + 1, S)
+            # add if not already there
+            if str(state) not in state_dict:
+                S.append(list(state))
+                state_dict[str(state)] = True
+
+            self.recusive_gen(list(state), index + 1, S, state_dict)
             return S
 
     def generate(self):
@@ -35,8 +42,7 @@ class Psi(object):
         """
         S = []
         s_initial = [0 for _ in range(self.size)]
-        S = self.recusive_gen(s_initial, 0, S)
-        S = sorted(S)
+        S = self.recusive_gen(s_initial, 0, S, {})
         arr = np.array(S)
         return arr
 
@@ -48,7 +54,22 @@ class Psi(object):
         psi = [1 for _ in range(2**self.size)]
         return np.array(psi)
 
+    def binary_to_int(self, state):
+        """
+        takes a list form of a state and converts it's binary representation
+        into a base 10 number
+        :param state: list of 0's and 1's
+        :return: base 10 representation (eg. [0,1,0] -> 2)
+        """
+        string_state = ""
+        for num in state:
+            string_state += str(num)
+        num = int(string_state, 2)
+        return num
+
+
 if __name__ == '__main__':
     p = Psi(4)
     print(p.basis)
+    print(p.binary_to_int(p.basis[2]))
 

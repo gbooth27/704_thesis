@@ -11,6 +11,17 @@ from matplotlib import pyplot as plt
 
 # https://keras.io/layers/recurrent/
 
+
+def energy(y_true, y_pred):
+    """
+
+    :param y_true:
+    :param y_pred:
+    :return:
+    """
+    return 0
+
+
 def load_net(n):
     """
     Creates a neural network of the correct size for optimization
@@ -19,7 +30,7 @@ def load_net(n):
     """
     return None
 
-def run_nnet(x, y, gpu, m):
+def run_nnet(x, gpu, m):
     """
     Run neural net for power predictions.
     :param x: features for training
@@ -27,6 +38,7 @@ def run_nnet(x, y, gpu, m):
     :param gpu:use gpu optimization
     :return: model
     """
+    y = [0 for _ in range(len(x))]
     if m != "":
         # load the model so that we can continue training
         model = load_model(m)
@@ -49,7 +61,7 @@ def run_nnet(x, y, gpu, m):
         sgd = optimizers.Adam()
         #sgd = optimizers.Adadelta(clipnorm=2.)
         # Compile model.
-        model.compile(loss='mse', optimizer=sgd, metrics=["mae", percent_err])
+        model.compile(loss=energy, optimizer=sgd, metrics=["energy", energy])
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
