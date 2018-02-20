@@ -24,7 +24,7 @@ class Psi(object):
                 S.append(list(state))
                 state_dict[str(state)] = True
             # recursively generate without bit flip
-            self.recusive_gen(list(state), index+1, S, state_dict)
+            self.recursive_gen(list(state), index+1, S, state_dict)
             # flip bit then recursively generate
             state[index] = 1
             # add if not already there
@@ -32,7 +32,7 @@ class Psi(object):
                 S.append(list(state))
                 state_dict[str(state)] = True
 
-            self.recusive_gen(list(state), index + 1, S, state_dict)
+            self.recursive_gen(list(state), index + 1, S, state_dict)
             return S
 
     def generate(self):
@@ -42,7 +42,7 @@ class Psi(object):
         """
         S = []
         s_initial = [0 for _ in range(self.size)]
-        S = self.recusive_gen(s_initial, 0, S, {})
+        S = self.recursive_gen(s_initial, 0, S, {})
         arr = np.array(S)
         return arr
 
