@@ -85,13 +85,13 @@ class Lattice:
                         - int(not self.PBC)*( 1 if (self.D == 1)
                             else int(not self.PBC)*(sum(L)) ) )                       
     
-    def NN(i):
-        """Returns a list of nearest neighbors of site i"""
+    """def NN(self, i):
+        #Returns a list of nearest neighbors of site i
         if self.D == 1:
             if i == 0:
                 if self.PBC:
                     is_left = True
-                    left_NN = L - 1
+                    left_NN = self.L - 1
                 else:
                     is_left = False
             else:
@@ -100,6 +100,7 @@ class Lattice:
                 
             NNs = []
         return NNS
+        """
     
     def config(self,state):
         """Returns the spin configuration for a state"""

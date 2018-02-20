@@ -6,13 +6,11 @@
     --Exact diagonalization for transverse field Ising models
     --Requires: tfim.py, numpy, scipy.sparse, scipy.linalg, progressbar
 """
-
-import tfim
+import hamiltonian.tfim as tfim
 import numpy as np
 from scipy import sparse
 from scipy.sparse import linalg as spla
 from scipy import linalg
-import progressbar
 import argparse
 
 ###############################################################################
@@ -194,9 +192,8 @@ def main():
     else:
         print("\tStarting sparse diagaonalization with k={} and "
                 "h in ({},{}), dh ={}".format(k,h_arr[0], h_arr[-1],args.dh) )
-    bar = progressbar.ProgressBar()
     v0 = None
-    for h in bar(h_arr):
+    for h in h_arr:
         
         H = -JZZ - h*Mx    
         if full_diag:
