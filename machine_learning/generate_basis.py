@@ -8,7 +8,7 @@ class Psi(object):
         self.basis = self.generate()
         self.weights = self.gen_weights()
 
-    def recusive_gen(self, state, index, S, state_dict):
+    def recursive_gen(self, state, index, S, state_dict):
         """
         recursively generates all possible combos of state basis vectors
         :param state: initial state (all zeros)
