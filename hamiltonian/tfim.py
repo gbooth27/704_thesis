@@ -83,24 +83,7 @@ class Lattice:
         self.D = len(L)             # spatial dimensionality
         self.N_links = ( self.D*self.N      # Number of nearest neighbor links
                         - int(not self.PBC)*( 1 if (self.D == 1)
-                            else int(not self.PBC)*(sum(L)) ) )                       
-    
-    """def NN(self, i):
-        #Returns a list of nearest neighbors of site i
-        if self.D == 1:
-            if i == 0:
-                if self.PBC:
-                    is_left = True
-                    left_NN = self.L - 1
-                else:
-                    is_left = False
-            else:
-                is_left = True
-                left_NN = i - 1
-                
-            NNs = []
-        return NNS
-        """
+                            else int(not self.PBC)*(sum(L)) ) )
     
     def config(self,state):
         """Returns the spin configuration for a state"""

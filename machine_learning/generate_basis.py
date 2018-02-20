@@ -1,16 +1,28 @@
 import numpy as np
-
+import hamiltonian.tfim as tfim
 
 class Psi(object):
 
-    def __init__(self, n):
+    def __init__(self, n, h):
         self.size = n
         self.basis = self.generate()
         self.weights = self.gen_weights()
+        self.Hamiltonian = self.get_ham(h)
+
+    def get_ham(self, h):
+        """
+        Generates the hamiltonian matrix for the given wavefunction.
+        :param h: tuning parameter
+        :return:
+        """
+        loaded_params, JZZ, ZZ, Mz, Ms = tfim.load_diag_ME(self.size)
+        Mx = tfim.load_Mx(self.size)
+        H = -JZZ - h*Mx
+        return H
 
     def recursive_gen(self, state, index, S, state_dict):
         """
-        recursively generates all possible combos of state basis vectors
+        Recursively generates all possible combos of state basis vectors.
         :param state: initial state (all zeros)
         :param index: initial index to change
         :return:
@@ -37,7 +49,7 @@ class Psi(object):
 
     def generate(self):
         """
-        Generates a vector of all 2^n possible spin basis states of the system
+        Generates a vector of all 2^n possible spin basis states of the system.
         :return: numpy array of various states
         """
         S = []
@@ -48,7 +60,7 @@ class Psi(object):
 
     def gen_weights(self):
         """
-        generates the vector of weights
+        Generates the vector of weights.
         :return: psi representing weights
         """
         psi = [1 for _ in range(2**self.size)]
@@ -56,8 +68,8 @@ class Psi(object):
 
     def binary_to_int(self, state):
         """
-        takes a list form of a state and converts it's binary representation
-        into a base 10 number
+        Takes a list form of a state and converts it's binary representation
+        into a base 10 number.
         :param state: list of 0's and 1's
         :return: base 10 representation (eg. [0,1,0] -> 2)
         """
@@ -69,7 +81,8 @@ class Psi(object):
 
 
 if __name__ == '__main__':
-    p = Psi(4)
+    p = Psi(4, 1)
     print(p.basis)
+    print(p.Hamiltonian)
     print(p.binary_to_int(p.basis[2]))
 
