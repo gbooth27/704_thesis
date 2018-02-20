@@ -17,6 +17,7 @@ class Psi(object):
         """
         loaded_params, JZZ, ZZ, Mz, Ms = tfim.load_diag_ME("../hamiltonian/matrix")
         Mx = tfim.load_Mx("../hamiltonian/matrix")
+        print(JZZ.shape)
         H = -JZZ - h*Mx
         return H
 
@@ -56,6 +57,8 @@ class Psi(object):
         s_initial = [0 for _ in range(self.size)]
         S = self.recursive_gen(s_initial, 0, S, {})
         arr = np.array(S)
+        for i in range(len(S)):
+            S[i] = np.array(S[i]).reshape((len(S[i]), 1))
         return arr
 
     def gen_weights(self):
@@ -64,7 +67,7 @@ class Psi(object):
         :return: psi representing weights
         """
         psi = [1 for _ in range(2**self.size)]
-        return np.array(psi)
+        return np.array(psi).reshape((len((psi)), 1))
 
     def binary_to_int(self, state):
         """
@@ -81,8 +84,11 @@ class Psi(object):
 
 
 if __name__ == '__main__':
-    p = Psi(4, 1)
+    p = Psi(6, 1)
     print(p.basis)
-    print(p.Hamiltonian)
+    print(p.Hamiltonian.shape)
     print(p.binary_to_int(p.basis[2]))
-
+    vec = np.dot(np.dot(p.weights.T, p.Hamiltonian.toarray()), p.weights)
+    print(vec[0][0])
+    print(vec[0][0]/np.dot(p.weights.T, p.weights)[0][0])
+    print(p.weights.shape)
