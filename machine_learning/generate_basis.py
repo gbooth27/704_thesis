@@ -15,8 +15,8 @@ class Psi(object):
         :param h: tuning parameter
         :return:
         """
-        loaded_params, JZZ, ZZ, Mz, Ms = tfim.load_diag_ME(self.size)
-        Mx = tfim.load_Mx(self.size)
+        loaded_params, JZZ, ZZ, Mz, Ms = tfim.load_diag_ME("../hamiltonian/matrix")
+        Mx = tfim.load_Mx("../hamiltonian/matrix")
         H = -JZZ - h*Mx
         return H
 

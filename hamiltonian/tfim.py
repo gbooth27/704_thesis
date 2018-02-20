@@ -58,7 +58,11 @@ def parse_header(filename):
     
     line = file.readline()
     while line[0] == '#':
-        elements = line[1:].translate(None, whitespace).split('=')
+        elements = ""
+        for elem in line[1:]:
+            if elem not in whitespace:
+                elements+=elem
+        elements = elements.split('=')
         if len(elements) > 1:
             parameters[elements[0]] = ast.literal_eval(elements[1])
         last_header_line = line
@@ -287,7 +291,7 @@ def load_diag_ME(filename_base):
     # Parse column labels to determine matrix for each column
     col_types = []
     for col in columns:
-        for key, lab in phys_labels.iteritems():
+        for key, lab in phys_labels.items():
             if col == lab:
                 col_types.append(key)
     

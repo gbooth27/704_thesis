@@ -69,7 +69,7 @@ def main():
     columns = ['JZZ', 'ZZ', 'Mz', 'Ms']
     diagonal_arr = np.array([JZZ_ME, ZZ_ME, Mz_ME, Ms_ME]).T
     diag_filename = out_filename_base + tfim.diag_ME_suffix
-    col_labels = ''.join( [ '{:>{width}}'.format( tfim.phys_labels[key], 
+    col_labels = ''.join( [ '{:>{width}}'.format( tfim.phys_labels[key],
                                 width = (width+1) ) for key in columns ] )[3:]
     print( "\tWriting diagonal matrix elements to {}".format(diag_filename) )
     np.savetxt( diag_filename, diagonal_arr, header= ( header + col_labels ),
