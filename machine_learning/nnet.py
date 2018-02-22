@@ -31,26 +31,19 @@ psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
     """
+    Compute the energy of the system for use as the loss function.
     :param y_true:
     :param y_pred:
     :return:
     """
-    #sess = tf.InteractiveSession()
-    #y= K.sum(y_true, 1)
+    # Put hamiltonian into tensor form
     ham = K.variable(psi.Hamiltonian.toarray())
-    #print(K.shape(ham))
     s = K.shape(y_pred)
-
     y_pred= K.reshape(y_pred, (s[1], -1))
-    #y_pred = K.l2_normalize(y_pred)
-    #t = K.permute_dimensions(y_pred, (1, s[1]))
-    #s = K.shape(y_pred)
+    # Take the dot product to get energy
     un_norm = K.dot(K.dot(y_pred, ham), y_pred)
-    #psi.weights[y_true] = y_pred
     norm = un_norm/K.sum(K.square(y_pred))
-    #un_norm = np.dot(np.dot(psi.weights.T, psi.Hamiltonian.toarray()), psi.weights)[0][0]
-    #norm = un_norm/np.dot(psi.weights.T, psi.weights)[0][0]
-    return abs(norm)
+    return norm
 
 def min_energy(p):
     un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
@@ -68,7 +61,7 @@ def load_net(n):
 
 def run_nnet(x, gpu, m):
     """
-    Run neural net for power predictions.
+    Run neural net for quantum state predictions.
     :param x: features for training
     :param y: labels for data
     :param gpu:use gpu optimization
@@ -94,19 +87,15 @@ def run_nnet(x, gpu, m):
         #model.add(keras.layers.Reshape())
         model.add(keras.layers.Reshape((dim1, 1)))
 
-
         # Set the optimizer.
-        #sgd = optimizers.SGD(lr=0.01, clipnorm=2.)#, momentum=0.1, nesterov=True)
-        #sgd = optimizers.Adagrad(clipnorm=2.)
         sgd = optimizers.Adam()
-        #sgd = optimizers.Adadelta(clipnorm=2.)
         # Compile model.
         model.compile(loss=energy, optimizer=sgd)
         print(model.summary())
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
-        model.fit(x, y, epochs=100, batch_size=128, verbose=2 , validation_split=0.2)
+        model.fit(x, y, epochs=400, batch_size=128, verbose=2 , validation_split=0.2)
     else:
         # Fit the model.
         # Feel free to change this batch size.
