@@ -26,8 +26,8 @@ class CustomMetrics(cbks.Callback):
 
 
 # https://keras.io/layers/recurrent/
-DIM = 10
-psi = wave.Psi(DIM, 1)
+DIM = 6
+psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
     """
@@ -42,12 +42,15 @@ def energy(y_true, y_pred):
     s = K.shape(y_pred)
 
     y_pred= K.reshape(y_pred, (s[1], -1))
+    #y_pred = K.l2_normalize(y_pred)
+    #t = K.permute_dimensions(y_pred, (1, s[1]))
     #s = K.shape(y_pred)
     un_norm = K.dot(K.dot(y_pred, ham), y_pred)
     #psi.weights[y_true] = y_pred
+    norm = un_norm/K.sum(K.square(y_pred))
     #un_norm = np.dot(np.dot(psi.weights.T, psi.Hamiltonian.toarray()), psi.weights)[0][0]
     #norm = un_norm/np.dot(psi.weights.T, psi.weights)[0][0]
-    return un_norm
+    return abs(norm)
 
 def min_energy(p):
     un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
@@ -71,7 +74,7 @@ def run_nnet(x, gpu, m):
     :param gpu:use gpu optimization
     :return: model
     """
-    y = psi.weights #[i for i in range(len(psi.weights))]
+    y = np.array([psi.weights for _ in range( (2**DIM))])#[i for i in range(len(psi.weights))]
     if m != "":
         # load the model so that we can continue training
         model = load_model(m)
@@ -83,11 +86,13 @@ def run_nnet(x, gpu, m):
         # Add the layers.
         # Tuning
         model.add(Dense(dim1, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
-        #model.add(Dense(400, kernel_initializer='random_uniform', activation='relu'))
-        #model.add(Dense(200, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
+        model.add(Dense(400, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(1000, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(1000, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="tanh"))#output_dim = (dim1,dim2)))
+        model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Reshape())
-        #model.add(keras.layers.Reshape(dim1, 1))
+        model.add(keras.layers.Reshape((dim1, 1)))
 
 
         # Set the optimizer.
@@ -101,7 +106,7 @@ def run_nnet(x, gpu, m):
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
-        model.fit(x, y, epochs=50, batch_size=512, verbose=2 , validation_split=0.2)
+        model.fit(x, y, epochs=1000, batch_size=128, verbose=2 , validation_split=0.2)
     else:
         # Fit the model.
         # Feel free to change this batch size.
@@ -109,6 +114,25 @@ def run_nnet(x, gpu, m):
     return model
 
 if __name__ == '__main__':
-    run_nnet(psi.basis, True, "")
-    #min = sp.optimize.minimize(min_energy, psi.weights)
-    #print(min)
+    model = run_nnet(psi.basis, True, "")
+    pred = model.predict(psi.basis)
+
+    min = sp.optimize.minimize(min_energy, psi.weights)
+    print("#########################################################")
+    res = np.reshape(min.x, (len(min.x), 1))
+    norm = np.dot(res.T, res)
+    print(min_energy(res))
+    #print(res/norm)#np.linalg.norm(np.reshape(min.x, (len(min.x), 1))))
+    print("#########################################################")
+    #print(str(pred[1]))
+    min = min_energy(pred[1])[0][0]
+    pos = 0
+    # find the best energy of the neural net
+    for i in range(len(pred)):
+        tmp = min_energy(pred[i])[0][0]
+        if tmp < min:
+            pos = i
+            min = tmp
+    print(min_energy(pred[pos]))
+
+
