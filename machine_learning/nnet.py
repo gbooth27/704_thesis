@@ -106,7 +106,7 @@ def run_nnet(x, gpu, m):
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
-        model.fit(x, y, epochs=1000, batch_size=128, verbose=2 , validation_split=0.2)
+        model.fit(x, y, epochs=100, batch_size=128, verbose=2 , validation_split=0.2)
     else:
         # Fit the model.
         # Feel free to change this batch size.
