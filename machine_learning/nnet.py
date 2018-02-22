@@ -26,7 +26,7 @@ class CustomMetrics(cbks.Callback):
 
 
 # https://keras.io/layers/recurrent/
-DIM = 6
+DIM = 20
 psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
@@ -106,11 +106,7 @@ if __name__ == '__main__':
     model = run_nnet(psi.basis, True, "")
     pred = model.predict(psi.basis)
 
-    min = sp.optimize.minimize(min_energy, psi.weights)
-    print("#########################################################")
-    res = np.reshape(min.x, (len(min.x), 1))
-    norm = np.dot(res.T, res)
-    print(min_energy(res))
+
     #print(res/norm)#np.linalg.norm(np.reshape(min.x, (len(min.x), 1))))
     print("#########################################################")
     #print(str(pred[1]))
@@ -123,5 +119,11 @@ if __name__ == '__main__':
             pos = i
             min = tmp
     print(min_energy(pred[pos]))
+
+    min = sp.optimize.minimize(min_energy, psi.weights)
+    print("#########################################################")
+    res = np.reshape(min.x, (len(min.x), 1))
+    norm = np.dot(res.T, res)
+    print(min_energy(res))
 
 
