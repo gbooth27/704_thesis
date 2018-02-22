@@ -5,7 +5,7 @@ from keras.layers import LSTM
 from keras import optimizers
 import keras
 from keras.models import load_model
-import machine_learning.generate_basis as wave
+import machine_learning.wave_function as wave
 import tensorflow as tf
 import scipy as sp
 from keras import backend as K
