@@ -26,7 +26,7 @@ class CustomMetrics(cbks.Callback):
 
 
 # https://keras.io/layers/recurrent/
-DIM = 20
+DIM = 6
 psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
@@ -39,6 +39,23 @@ def energy(y_true, y_pred):
     # Put hamiltonian into tensor form
     ham = K.variable(psi.Hamiltonian.toarray())
     s = K.shape(y_pred)
+    y_pred= K.reshape(y_pred, (s[1], -1))
+    # Take the dot product to get energy
+    un_norm = K.dot(K.dot(y_pred, ham), y_pred)
+    norm = un_norm/K.sum(K.square(y_pred))
+    return norm
+
+def energy_tf(y_true, y_pred):
+    """
+    Compute the energy of the system for use as the loss function.
+    :param y_true:
+    :param y_pred:
+    :return:
+    """
+    tf_session = K.get_session()
+    # Put hamiltonian into tensor form
+    ham = K.variable(psi.Hamiltonian.toarray())
+    s = K.shape(ham).eval(session=tf_session)
     y_pred= K.reshape(y_pred, (s[1], -1))
     # Take the dot product to get energy
     un_norm = K.dot(K.dot(y_pred, ham), y_pred)
@@ -59,7 +76,7 @@ def load_net(n):
     """
     return None
 
-def run_nnet(x, gpu, m):
+def run_nnet(x, gpu, m, backend):
     """
     Run neural net for quantum state predictions.
     :param x: features for training
@@ -90,12 +107,19 @@ def run_nnet(x, gpu, m):
         # Set the optimizer.
         sgd = optimizers.Adam()
         # Compile model.
-        model.compile(loss=energy, optimizer=sgd)
+        if backend:
+            model.compile(loss=energy_tf, optimizer=sgd)
+        else:
+            model.compile(loss=energy_tf, optimizer=sgd)
+
         print(model.summary())
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
-        model.fit(x, y, epochs=400, batch_size=128, verbose=2 , validation_split=0.2)
+        if backend:
+            model.fit(x, y, epochs=400, batch_size=128, verbose=2)
+        else:
+            model.fit(x, y, epochs=400, batch_size=128, verbose=2 , validation_split=0.2)
     else:
         # Fit the model.
         # Feel free to change this batch size.
@@ -103,7 +127,13 @@ def run_nnet(x, gpu, m):
     return model
 
 if __name__ == '__main__':
-    model = run_nnet(psi.basis, True, "")
+    parser = argparse.ArgumentParser()
+    #parser.add_argument('--model', "-m", dest='model', action='store', required=True, help="path to model being used")
+    parser.add_argument('--tensorflow', "-tf", dest='tf', action='store_true', help="if using tensorflow backend")
+    args = parser.parse_args()
+
+
+    model = run_nnet(psi.basis, True, "", args.tf)
     pred = model.predict(psi.basis)
 
 
