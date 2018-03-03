@@ -96,10 +96,12 @@ def run_nnet(x, gpu, m, backend):
         # Add the layers.
         # Tuning
         model.add(Dense(dim1, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(400, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(1000, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(1000, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="tanh"))#output_dim = (dim1,dim2)))
+        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(2*DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dropout(0.1, noise_shape=None, seed=None))
+        model.add(Dense(4*DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dropout(0.1, noise_shape=None, seed=None))
+        model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Reshape())
         model.add(keras.layers.Reshape((dim1, 1)))
@@ -117,13 +119,13 @@ def run_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit(x, y, epochs=400, batch_size=128, verbose=2)
+            model.fit(x, y, epochs=1000, batch_size=128, verbose=1)
         else:
-            model.fit(x, y, epochs=400, batch_size=128, verbose=2 , validation_split=0.2)
+            model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
         # Fit the model.
         # Feel free to change this batch size.
-        model.fit(x, y, epochs=100, batch_size=4096, verbose =2, validation_split=0.2, callbacks=[CustomMetrics()])
+        model.fit(x, y, epochs=100, batch_size=4096, verbose =1, validation_split=0.2, callbacks=[CustomMetrics()])
     return model
 
 if __name__ == '__main__':
