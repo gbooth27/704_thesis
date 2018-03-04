@@ -18,18 +18,7 @@ from matplotlib import pyplot as plt
 
 import progressbar
 
-
-import keras.callbacks as cbks
-class CustomMetrics(cbks.Callback):
-
-    def on_epoch_end(self, epoch, logs=None):
-        for k in logs:
-            if k.endswith('energy'):
-               print (logs[k])
-
-
-# https://keras.io/layers/recurrent/
-DIM = 14
+DIM = 12
 psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
@@ -64,20 +53,6 @@ def energy_tf(y_true, y_pred):
     un_norm = K.dot(K.dot(K.transpose(y_pred), ham), y_pred)
     norm = un_norm/K.sum(K.square(y_pred))
     return norm
-
-def min_energy(p):
-    un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
-    norm = un_norm / np.dot(p.T, p)
-    return norm
-
-
-def load_net(n):
-    """
-    Creates a neural network of the correct size for optimization
-    :param n: number of particles
-    :return:
-    """
-    return None
 
 def run_nnet(x, gpu, m, backend):
     """
@@ -135,37 +110,3 @@ def run_nnet(x, gpu, m, backend):
         pass
         #model.fit(x, y, epochs=100, batch_size=4096, verbose =1, validation_split=0.2, callbacks=[CustomMetrics()])
     return model
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    #parser.add_argument('--model', "-m", dest='model', action='store', required=True, help="path to model being used")
-    parser.add_argument('--tensorflow', "-tf", dest='tf', action='store_true', help="if using tensorflow backend")
-    args = parser.parse_args()
-
-
-    model = run_nnet(psi.basis, True, "", args.tf)
-    pred = model.predict(psi.basis)
-
-
-    #print(res/norm)#np.linalg.norm(np.reshape(min.x, (len(min.x), 1))))
-    print("#########################################################")
-    #print(str(pred[1]))
-    min = min_energy(pred[1])[0][0]
-    pos = 0
-    # find the best energy of the neural net
-    """bar = progressbar.ProgressBar()
-    for i in bar(range(len(pred))):
-        tmp = min_energy(pred[i])[0][0]
-        if tmp < min:
-            pos = i
-            min = tmp
-    """
-    print(min_energy(pred[pos]))
-
-    #min = sp.optimize.minimize(min_energy, psi.weights, options={'disp': True})
-    print("#########################################################")
-    #res = np.reshape(min.x, (len(min.x), 1))
-    #norm = np.dot(res.T, res)
-    #print(min_energy(res))
-
-

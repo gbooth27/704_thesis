@@ -15,6 +15,7 @@ from string import whitespace
 import ast
 import collections
 import bisect
+import progressbar
 
 # Global constants
 #######################################
@@ -174,9 +175,9 @@ def z_correlations_NN_ME(lattice,basis,J):
     
     JZZ = np.zeros(basis.M)
     ZZ = np.zeros(basis.M)
-    
 
-    for b in range(basis.M):
+    bar = progressbar.ProgressBar()
+    for b in bar(range(basis.M)):
         config = lattice.config(basis.state(b))
         for d in range(lattice.D):
             NN_config = lattice.NN_config(config,d)
@@ -208,7 +209,8 @@ def JZZ_SK_ME(basis,J):
     
     JZZ = np.zeros(basis.M)
     shift_state = np.zeros(basis.N,dtype=int)
-    for b in range(basis.M):
+    bar = progressbar.ProgressBar()
+    for b in bar(range(basis.M)):
         state = basis.spin_state(b)
         for shift in range(1,basis.N/2+1):
             shift_state[shift:] = state[:-shift]
@@ -327,9 +329,9 @@ def build_Mx(lattice,basis):
     T = np.ones(basis.M*lattice.N)
     I = np.ones(basis.M*lattice.N)
     J = np.ones(basis.M*lattice.N)
-    
 
-    for ket in range(basis.M):
+    bar = progressbar.ProgressBar()
+    for ket in bar(range(basis.M)):
         state = basis.state(ket)
         for i in range(lattice.N):
             basis.flip(state,i)
