@@ -149,12 +149,13 @@ if __name__ == '__main__':
     min = min_energy(pred[1])[0][0]
     pos = 0
     # find the best energy of the neural net
-    bar = progressbar.ProgressBar()
+    """bar = progressbar.ProgressBar()
     for i in bar(range(len(pred))):
         tmp = min_energy(pred[i])[0][0]
         if tmp < min:
             pos = i
             min = tmp
+    """
     print(min_energy(pred[pos]))
 
     min = sp.optimize.minimize(min_energy, psi.weights, options={'disp': True})
