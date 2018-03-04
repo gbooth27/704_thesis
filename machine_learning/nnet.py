@@ -127,7 +127,7 @@ def run_nnet(x, gpu, m, backend):
             model.fit_generator(gen.generator_mem(256, DIM), steps_per_epoch=DIM, epochs=10)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
-            model.fit_generator(gen.generator_mem(16, DIM), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_mem(8, DIM), steps_per_epoch=DIM, epochs=10, verbose=2)
             #model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
         # Fit the model.
