@@ -87,7 +87,7 @@ def run_nnet(x, gpu, m, backend):
     :param gpu:use gpu optimization
     :return: model
     """
-    y = np.array([psi.weights for _ in range( (2**DIM))])#[i for i in range(len(psi.weights))]
+    #y = np.array([psi.weights for _ in range( (2**DIM))])#[i for i in range(len(psi.weights))]
     if m != "":
         # load the model so that we can continue training
         model = load_model(m)
@@ -105,8 +105,9 @@ def run_nnet(x, gpu, m, backend):
         model.add(Dense(4*DIM, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dropout(0.1, noise_shape=None, seed=None))
         model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
+        # Normalize the output vector PSI
         model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Reshape())
+        # Make sure that it is of the correct shape.
         model.add(keras.layers.Reshape((dim1, 1)))
 
         # Set the optimizer.
@@ -115,7 +116,7 @@ def run_nnet(x, gpu, m, backend):
         if backend:
             model.compile(loss=energy_tf, optimizer=sgd)
         else:
-            model.compile(loss=energy_tf, optimizer=sgd)
+            model.compile(loss=energy, optimizer=sgd)
 
         print(model.summary())
     if gpu:
@@ -125,12 +126,13 @@ def run_nnet(x, gpu, m, backend):
             model.fit_generator(gen.generator_mem(128, DIM), steps_per_epoch=DIM, epochs=10)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
-            model.fit_generator(gen.generator_mem(128, DIM), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_mem(16, DIM), steps_per_epoch=DIM, epochs=10)
             #model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
         # Fit the model.
         # Feel free to change this batch size.
-        model.fit(x, y, epochs=100, batch_size=4096, verbose =1, validation_split=0.2, callbacks=[CustomMetrics()])
+        pass
+        #model.fit(x, y, epochs=100, batch_size=4096, verbose =1, validation_split=0.2, callbacks=[CustomMetrics()])
     return model
 
 if __name__ == '__main__':
