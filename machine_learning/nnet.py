@@ -10,11 +10,14 @@ import tensorflow as tf
 import scipy as sp
 from keras import backend as K
 
-
+import machine_learning.generator as gen
 
 import numpy as np
 import argparse
 from matplotlib import pyplot as plt
+
+import progressbar
+
 
 import keras.callbacks as cbks
 class CustomMetrics(cbks.Callback):
@@ -26,7 +29,7 @@ class CustomMetrics(cbks.Callback):
 
 
 # https://keras.io/layers/recurrent/
-DIM = 6
+DIM = 12
 psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
@@ -119,7 +122,8 @@ def run_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit(x, y, epochs=1000, batch_size=128, verbose=1)
+            model.fit_generator(gen.generator_mem(128, DIM), steps_per_epoch=DIM, epochs=10)
+            #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
             model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
@@ -145,14 +149,15 @@ if __name__ == '__main__':
     min = min_energy(pred[1])[0][0]
     pos = 0
     # find the best energy of the neural net
-    for i in range(len(pred)):
+    bar = progressbar.ProgressBar()
+    for i in bar(range(len(pred))):
         tmp = min_energy(pred[i])[0][0]
         if tmp < min:
             pos = i
             min = tmp
     print(min_energy(pred[pos]))
 
-    min = sp.optimize.minimize(min_energy, psi.weights)
+    min = sp.optimize.minimize(min_energy, psi.weights, options={'disp': True})
     print("#########################################################")
     res = np.reshape(min.x, (len(min.x), 1))
     norm = np.dot(res.T, res)

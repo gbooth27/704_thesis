@@ -2,3 +2,4 @@ keras
 numpy
 matplotlib
 scipy
+progressbar2
