@@ -12,7 +12,7 @@ class Psi(object):
         self.basis = self.generate()
         self.weights = self.gen_weights()
         self.Hamiltonian = self.get_ham(h)
-        self.ground = self.get_ground()
+        self.ground = []#self.get_ground()
 
     def min_energy(self, p):
         un_norm = np.dot(np.dot(p.T, self.Hamiltonian.toarray()), p)
@@ -37,7 +37,7 @@ class Psi(object):
         :return:
         """
         min = sp.optimize.minimize(self.min_energy, self.weights)
-        return min.x
+        self.ground = min.x
 
     def recursive_gen(self, state, index, S, state_dict):
         """

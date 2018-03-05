@@ -20,6 +20,7 @@ import progressbar
 
 DIM = 9
 psi = wave.Psi(DIM, 2)
+psi.get_ground()
 
 def min_energy(p):
     un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
