@@ -1,5 +1,9 @@
 import numpy as np
+import scipy as sp
 import hamiltonian.tfim as tfim
+
+
+
 
 class Psi(object):
 
@@ -8,6 +12,12 @@ class Psi(object):
         self.basis = self.generate()
         self.weights = self.gen_weights()
         self.Hamiltonian = self.get_ham(h)
+        self.ground = self.get_ground()
+
+    def min_energy(self, p):
+        un_norm = np.dot(np.dot(p.T, self.Hamiltonian.toarray()), p)
+        norm = un_norm / np.dot(p.T, p)
+        return norm
 
     def get_ham(self, h):
         """
@@ -20,6 +30,14 @@ class Psi(object):
         print(JZZ.shape)
         H = -JZZ - h*Mx
         return H
+
+    def get_ground(self):
+        """
+        Generates the ground state of the system
+        :return:
+        """
+        min = sp.optimize.minimize(self.min_energy, self.weights)
+        return min.x
 
     def recursive_gen(self, state, index, S, state_dict):
         """

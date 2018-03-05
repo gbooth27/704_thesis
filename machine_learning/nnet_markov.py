@@ -18,41 +18,14 @@ from matplotlib import pyplot as plt
 
 import progressbar
 
-DIM = 12
+DIM = 9
 psi = wave.Psi(DIM, 2)
 
-def energy(y_true, y_pred):
-    """
-    Compute the energy of the system for use as the loss function.
-    :param y_true:
-    :param y_pred:
-    :return:
-    """
-    # Put hamiltonian into tensor form
-    ham = K.variable(psi.Hamiltonian.toarray())
-    s = K.shape(y_pred)
-    y_pred= K.reshape(y_pred, (s[1], -1))
-    # Take the dot product to get energy
-    un_norm = K.dot(K.dot(y_pred, ham), y_pred)
-    norm = un_norm/K.sum(K.square(y_pred))
+def min_energy(p):
+    un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
+    norm = un_norm / np.dot(p.T, p)
     return norm
 
-def energy_tf(y_true, y_pred):
-    """
-    Compute the energy of the system for use as the loss function.
-    :param y_true:
-    :param y_pred:
-    :return:
-    """
-    tf_session = K.get_session()
-    # Put hamiltonian into tensor form
-    ham = K.variable(psi.Hamiltonian.toarray())
-    s = K.shape(ham).eval(session=tf_session)
-    y_pred= K.reshape(y_pred, (s[1], -1))
-    # Take the dot product to get energy
-    un_norm = K.dot(K.dot(K.transpose(y_pred), ham), y_pred)
-    norm = un_norm/K.sum(K.square(y_pred))
-    return norm
 
 def run_nnet(x, gpu, m, backend):
     """
@@ -75,34 +48,28 @@ def run_nnet(x, gpu, m, backend):
         # Add the layers.
         # Tuning
         model.add(Dense(dim1, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(2*DIM, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dropout(0.1, noise_shape=None, seed=None))
-        model.add(Dense(4*DIM, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dropout(0.1, noise_shape=None, seed=None))
-        model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
-        # Normalize the output vector PSI
-        model.add(keras.layers.BatchNormalization())
-        # Make sure that it is of the correct shape.
-        model.add(keras.layers.Reshape((dim1, 1)))
+        model.add(Dense(DIM//2, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
+
 
         # Set the optimizer.
         sgd = optimizers.Adam()
         # Compile model.
         if backend:
-            model.compile(loss=energy_tf, optimizer=sgd)
+            model.compile(loss="mse", optimizer=sgd)
         else:
-            model.compile(loss=energy, optimizer=sgd)
+            model.compile(loss="mse", optimizer=sgd)
 
         print(model.summary())
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_mem(256, DIM), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=100)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
-            model.fit_generator(gen.generator_mem(16, DIM), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=10)
             #model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
         # Fit the model.
@@ -110,3 +77,28 @@ def run_nnet(x, gpu, m, backend):
         pass
         #model.fit(x, y, epochs=100, batch_size=4096, verbose =1, validation_split=0.2, callbacks=[CustomMetrics()])
     return model
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    #parser.add_argument('--model', "-m", dest='model', action='store', required=True, help="path to model being used")
+    parser.add_argument('--tensorflow', "-tf", dest='tf', action='store_true', help="if using tensorflow backend")
+    args = parser.parse_args()
+
+
+    model = run_nnet(psi.basis, True, "", args.tf)
+    pred = model.predict(psi.basis)
+
+
+    #print(res/norm)#np.linalg.norm(np.reshape(min.x, (len(min.x), 1))))
+    print("#########################################################")
+    #print(str(pred[1]))
+    min = min_energy(pred)[0][0]
+    pos = 0
+    # find the best energy of the neural net
+    print(min)
+    actual_min = min_energy(psi.ground)
+    print(actual_min)
+
+    print(min/actual_min)
+
