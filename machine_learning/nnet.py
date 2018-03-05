@@ -29,7 +29,7 @@ class CustomMetrics(cbks.Callback):
 
 
 # https://keras.io/layers/recurrent/
-DIM = 8
+DIM = 9
 psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
@@ -99,7 +99,7 @@ def run_nnet(x, gpu, m, backend):
         dim2 = len(x[0])
         # Add the layers.
         # Tuning
-        model.add(Dense(dim1, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(dim2, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dense(2*DIM, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dropout(0.1, noise_shape=None, seed=None))

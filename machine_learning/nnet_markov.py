@@ -47,27 +47,25 @@ def run_nnet(x, gpu, m, backend):
         dim1 = len(x)
         dim2 = len(x[0])
         # Add the layers.
-        # Tuning
-        model.add(Dense(dim1, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(dim2, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dropout(0.1, noise_shape=None, seed=None))
         model.add(Dense(DIM//2, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
-
+        model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))
 
         # Set the optimizer.
-        sgd = optimizers.Adam()
+        opt = optimizers.Adam()
         # Compile model.
         if backend:
-            model.compile(loss="mse", optimizer=sgd)
+            model.compile(loss="mse", optimizer=opt)
         else:
-            model.compile(loss="mse", optimizer=sgd)
+            model.compile(loss="mse", optimizer=opt)
 
         print(model.summary())
     if gpu:
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=100)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size)/DIM, epochs=100)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
             model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=10)
@@ -86,20 +84,16 @@ if __name__ == '__main__':
     parser.add_argument('--tensorflow', "-tf", dest='tf', action='store_true', help="if using tensorflow backend")
     args = parser.parse_args()
 
-
+    # Predict the coefficients
     model = run_nnet(psi.basis, True, "", args.tf)
     pred = model.predict(psi.basis)
-
-
-    #print(res/norm)#np.linalg.norm(np.reshape(min.x, (len(min.x), 1))))
     print("#########################################################")
-    #print(str(pred[1]))
+    # get energy of prediction
     min = min_energy(pred)[0][0]
-    pos = 0
     # find the best energy of the neural net
     print(min)
     actual_min = min_energy(psi.ground)
     print(actual_min)
-
-    print(min/actual_min)
+    # error calc
+    print(100*(1 - min/actual_min))
 
