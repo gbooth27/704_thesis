@@ -20,7 +20,7 @@ import progressbar
 
 DIM = 9
 psi = wave.Psi(DIM, 2)
-psi.get_ground()
+
 
 def min_energy(p):
     un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
@@ -81,8 +81,15 @@ def run_nnet(x, gpu, m, backend):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     #parser.add_argument('--model', "-m", dest='model', action='store', required=True, help="path to model being used")
+    parser.add_argument('--ground', "-g", dest='ground', action='store', required=True, help="path to ground state being used")
     parser.add_argument('--tensorflow', "-tf", dest='tf', action='store_true', help="if using tensorflow backend")
     args = parser.parse_args()
+
+    if args.ground=="":
+        psi.get_ground()
+        np.save("ground_states/ground_"+str(DIM),psi.ground)
+    else:
+        psi.ground = np.load(args.ground)
 
     # Predict the coefficients
     model = run_nnet(psi.basis, True, "", args.tf)

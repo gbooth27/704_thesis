@@ -3,3 +3,4 @@
 hamiltonian/matrix_diagME.dat
 hamiltonian/matrix_Mx.npz
 venv
+machine_learning/ground_states/ground_*
