@@ -2,3 +2,4 @@
 .idea/*
 hamiltonian/matrix_diagME.dat
 hamiltonian/matrix_Mx.npz
+venv
