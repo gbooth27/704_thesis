@@ -65,7 +65,7 @@ def run_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size)/DIM, epochs=100)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size)/DIM, epochs=50)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
             model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=10)
