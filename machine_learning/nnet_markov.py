@@ -18,7 +18,7 @@ from matplotlib import pyplot as plt
 
 import progressbar
 
-DIM = 9
+DIM = 11
 psi = wave.Psi(DIM, 2)
 
 
