@@ -13,6 +13,7 @@ class Psi(object):
         self.weights = self.gen_weights()
         self.Hamiltonian = self.get_ham(h)
         self.ground = []#self.get_ground()
+        self.collapsed = self.collapse_on_axis()
 
     def min_energy(self, p):
         un_norm = np.dot(np.dot(p.T, self.Hamiltonian.toarray()), p)
@@ -99,6 +100,18 @@ class Psi(object):
             string_state += str(num)
         num = int(string_state, 2)
         return num
+
+    def collapse_on_axis(self):
+        """
+        collapses the hamiltonain matrix on each axis and sums them
+        :return:
+        """
+        ham = self.Hamiltonian.toarray()
+        column_wise = np.sum(ham, axis=0)
+        row_wise = np.sum(ham, axis=1)
+        end = np.add(column_wise, row_wise)
+        return end
+
 
 
 if __name__ == '__main__':

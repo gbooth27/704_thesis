@@ -45,7 +45,7 @@ def energy(y_true, y_pred):
     y_pred= K.reshape(y_pred, (s[1], -1))
     # Take the dot product to get energy
     un_norm = K.dot(K.dot(y_pred, ham), y_pred)
-    norm = un_norm/K.sum(K.square(y_pred))
+    norm = un_norm/K.sqrt(K.sum(K.square(y_pred)))
     return norm
 
 def energy_tf(y_true, y_pred):
@@ -62,7 +62,7 @@ def energy_tf(y_true, y_pred):
     y_pred= K.reshape(y_pred, (s[1], -1))
     # Take the dot product to get energy
     un_norm = K.dot(K.dot(K.transpose(y_pred), ham), y_pred)
-    norm = un_norm/K.sum(K.square(y_pred))
+    norm = un_norm/K.sqrt(K.sum(K.square(y_pred)))
     return norm
 
 def min_energy(p):

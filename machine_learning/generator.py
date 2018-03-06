@@ -38,3 +38,24 @@ def generator_precompute(batch_size, wave):
             batch_x.append(np.asarray(state))#.reshape((n,1)))
             batch_y.append(wave.ground[num])
         yield np.array(batch_x), np.array(batch_y)
+
+
+def generator_approx(batch_size, wave):
+    while (True):
+        batch_x = []
+        batch_y = []
+        for i in range(batch_size):
+            # generate the labels
+
+
+            # generate a random sample of basis vectors
+            #state = [np.random.choice([0,1]) for _ in range(wave.size)]
+            state = random.choice(wave.basis)
+            num = wave.binary_to_int(state)
+
+            #s =np.asarray(state)#.reshape(n,1)
+            #p = s.reshape((n,1))
+            #sha = p.shape
+            batch_x.append(np.asarray(state))#.reshape((n,1)))
+            batch_y.append(wave.collapsed[num])
+        yield np.array(batch_x), np.array(batch_y)

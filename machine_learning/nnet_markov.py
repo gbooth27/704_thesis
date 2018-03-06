@@ -9,7 +9,7 @@ import machine_learning.wave_function as wave
 import tensorflow as tf
 import scipy as sp
 from keras import backend as K
-
+import math
 import machine_learning.generator as gen
 
 import numpy as np
@@ -18,14 +18,80 @@ from matplotlib import pyplot as plt
 
 import progressbar
 
-DIM = 11
+DIM = 9
 psi = wave.Psi(DIM, 2)
+psi.collapse_on_axis()
 
 
 def min_energy(p):
     un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
-    norm = un_norm / np.dot(p.T, p)
+    norm = un_norm / math.sqrt(np.dot(p.T, p))
     return norm
+
+def energy_sample(y_true, y_pred):
+    """
+    energy cost function
+    :param y_true:
+    :param y_pred:
+    :return:
+    """
+    #return (y_pred * y_true)
+    return K.dot(K.transpose(y_pred),y_true)
+
+
+def run_approx_nnet(x, gpu, m, backend):
+    """
+    Run neural net for quantum state predictions.
+    :param x: features for training
+    :param y: labels for data
+    :param gpu:use gpu optimization
+    :param backend: whether or not you are using a tensorflow backend
+    :return: model
+    """
+    #y = np.array([psi.weights for _ in range( (2**DIM))])#[i for i in range(len(psi.weights))]
+    if m != "":
+        # load the model so that we can continue training
+        model = load_model(m)
+    else:
+        # Create model.
+        model = Sequential()
+        dim1 = len(x)
+        dim2 = len(x[0])
+        # Add the layers.
+        model.add(Dense(dim2, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dropout(0.1, noise_shape=None, seed=None))
+        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
+        #model.add(Dropout(0.1, noise_shape=None, seed=None))
+        #model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))
+
+        # Set the optimizer.
+        opt = optimizers.Adam()
+        # Compile model.
+        if backend:
+            model.compile(loss=energy_sample, optimizer=opt)
+        else:
+            model.compile(loss=energy_sample, optimizer=opt)
+
+        print(model.summary())
+    if gpu:
+        # Fit the model.
+        # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
+        if backend:
+            model.fit_generator(gen.generator_approx(128, psi), steps_per_epoch=DIM, epochs=15)
+            #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
+        else:
+            model.fit_generator(gen.generator_approx(128, psi), steps_per_epoch=DIM, epochs=10)
+            #model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
+    else:
+        # Fit the model.
+        # Feel free to change this batch size.
+        pass
+        #model.fit(x, y, epochs=100, batch_size=4096, verbose =1, validation_split=0.2, callbacks=[CustomMetrics()])
+    return model
+
+
+
 
 
 def run_nnet(x, gpu, m, backend):
@@ -65,7 +131,7 @@ def run_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size)/DIM, epochs=50)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size)/DIM, epochs=30)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
             model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=10)
@@ -92,8 +158,9 @@ if __name__ == '__main__':
         psi.ground = np.load(args.ground)
 
     # Predict the coefficients
-    model = run_nnet(psi.basis, True, "", args.tf)
+    model = run_approx_nnet(psi.basis, True, "", args.tf)
     pred = model.predict(psi.basis)
+    pred = pred / math.sqrt(np.dot(pred.T, pred))
     print("#########################################################")
     # get energy of prediction
     min = min_energy(pred)[0][0]
@@ -104,3 +171,11 @@ if __name__ == '__main__':
     # error calc
     print(100*(1 - min/actual_min))
 
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+
+    print(np.dot(psi.ground.T, psi.collapsed))
+    print()
+
+
+    arr = psi.ground/math.sqrt(np.dot(psi.ground.T, psi.ground))
+    print(np.dot(arr.T, arr))
