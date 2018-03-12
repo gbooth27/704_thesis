@@ -12,7 +12,7 @@ def run_rbm(psi):
     """
     # Create the RBM with N visible and 2N hidden
     net = rbm.RBM(num_visible=psi.size, num_hidden=2*psi.size)
-    net.train(psi.basis)
+    net.train(psi.basis, max_epochs=1000)
     print(net.weights)
     print('########################################################')
     test = psi.basis[10].reshape((psi.size, 1)).T
@@ -22,13 +22,14 @@ def run_rbm(psi):
 
 def construct_wave(net, psi):
     """
-
+    Constructs the wavefunction in the manner outlined in the paper
+    "Solving the quantum many-body problem with artificial neural networks"
+    by Carleo and Troyer
     :param net:
     :return:
     """
     a= 1
     b = 1
-
     # iterate over the entire psi
     for n in range(2**psi.size):
         F = 1
@@ -51,14 +52,15 @@ def construct_wave(net, psi):
 
 
 if __name__ == '__main__':
-    psi = wave.Psi(4, 2)
-    psi_2 = wave.Psi(4, 2)
+    psi = wave.Psi(6, 2)
+    psi_2 = wave.Psi(6, 2)
     net = run_rbm(psi)
     construct_wave(net,psi)
     print(psi.min_energy(psi.weights))
-    norm_psi = psi.weights/np.sqrt(np.dot(psi.weights.T, psi.weights))
-    print(norm_psi)
-    print(np.dot(norm_psi.T, norm_psi))
+    #dot = np.dot(psi.weights.T, psi.weights)
+    #norm_psi = psi.weights/np.sqrt(dot)
+    #print(norm_psi)
+    #print(np.dot(norm_psi.T, norm_psi))
 
     min = sp.optimize.minimize(psi_2.min_energy, psi_2.weights, options={'disp': True})
     print("#########################################################")
