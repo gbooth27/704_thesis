@@ -24,8 +24,8 @@ class RBM:
 
 
     # Insert weights for the bias units into the first row and first column.
-    self.weights = np.insert(self.weights, 0, 0, axis = 0)
-    self.weights = np.insert(self.weights, 0, 0, axis = 1)
+    #self.weights = np.insert(self.weights, 0, 0, axis = 0)
+    #self.weights = np.insert(self.weights, 0, 0, axis = 1)
 
   def train(self, data, max_epochs = 1000, learning_rate = 0.1):
     """
@@ -39,15 +39,15 @@ class RBM:
     num_examples = data.shape[0]
 
     # Insert bias units of 1 into the first column.
-    data = np.insert(data, 0, 1, axis = 1)
+    # data = np.insert(data, 0, 1, axis = 1)
 
     for epoch in range(max_epochs):      
       # Clamp to the data and sample from the hidden units. 
       # (This is the "positive CD phase", aka the reality phase.)
       pos_hidden_activations = np.dot(data, self.weights)      
       pos_hidden_probs = self._logistic(pos_hidden_activations)
-      pos_hidden_probs[:,0] = 1 # Fix the bias unit.
-      pos_hidden_states = pos_hidden_probs > np.random.rand(num_examples, self.num_hidden + 1)
+      #pos_hidden_probs[:,0] = 1 # Fix the bias unit.
+      pos_hidden_states = pos_hidden_probs > np.random.rand(num_examples, self.num_hidden )#+ 1)
       # Note that we're using the activation *probabilities* of the hidden states, not the hidden states       
       # themselves, when computing associations. We could also use the states; see section 3 of Hinton's 
       # "A Practical Guide to Training Restricted Boltzmann Machines" for more.
@@ -57,7 +57,7 @@ class RBM:
       # (This is the "negative CD phase", aka the daydreaming phase.)
       neg_visible_activations = np.dot(pos_hidden_states, self.weights.T)
       neg_visible_probs = self._logistic(neg_visible_activations)
-      neg_visible_probs[:,0] = 1 # Fix the bias unit.
+      #neg_visible_probs[:,0] = 1 # Fix the bias unit.
       neg_hidden_activations = np.dot(neg_visible_probs, self.weights)
       neg_hidden_probs = self._logistic(neg_hidden_activations)
       # Note, again, that we're using the activation *probabilities* when computing associations, not the states 
@@ -90,22 +90,22 @@ class RBM:
     
     # Create a matrix, where each row is to be the hidden units (plus a bias unit)
     # sampled from a training example.
-    hidden_states = np.ones((num_examples, self.num_hidden + 1))
+    hidden_states = np.ones((num_examples, self.num_hidden ))#+ 1))
     
     # Insert bias units of 1 into the first column of data.
-    data = np.insert(data, 0, 1, axis = 1)
+    #data = np.insert(data, 0, 1, axis = 1)
 
     # Calculate the activations of the hidden units.
     hidden_activations = np.dot(data, self.weights)
     # Calculate the probabilities of turning the hidden units on.
     hidden_probs = self._logistic(hidden_activations)
     # Turn the hidden units on with their specified probabilities.
-    hidden_states[:,:] = hidden_probs > np.random.rand(num_examples, self.num_hidden + 1)
+    hidden_states[:,:] = hidden_probs > np.random.rand(num_examples, self.num_hidden )#+ 1)
     # Always fix the bias unit to 1.
     # hidden_states[:,0] = 1
   
     # Ignore the bias units.
-    hidden_states = hidden_states[:,1:]
+    hidden_states = hidden_states[:,:]#1:]
     return hidden_states
     
   # TODO: Remove the code duplication between this method and `run_visible`?
@@ -128,22 +128,22 @@ class RBM:
 
     # Create a matrix, where each row is to be the visible units (plus a bias unit)
     # sampled from a training example.
-    visible_states = np.ones((num_examples, self.num_visible + 1))
+    visible_states = np.ones((num_examples, self.num_visible ))#+ 1))
 
     # Insert bias units of 1 into the first column of data.
-    data = np.insert(data, 0, 1, axis = 1)
+    #data = np.insert(data, 0, 1, axis = 1)
 
     # Calculate the activations of the visible units.
     visible_activations = np.dot(data, self.weights.T)
     # Calculate the probabilities of turning the visible units on.
     visible_probs = self._logistic(visible_activations)
     # Turn the visible units on with their specified probabilities.
-    visible_states[:,:] = visible_probs > np.random.rand(num_examples, self.num_visible + 1)
+    visible_states[:,:] = visible_probs > np.random.rand(num_examples, self.num_visible)# + 1)
     # Always fix the bias unit to 1.
     # visible_states[:,0] = 1
 
     # Ignore the bias units.
-    visible_states = visible_states[:,1:]
+    visible_states = visible_states[:,:]#1:]
     return visible_states
     
   def daydream(self, num_samples):
@@ -161,10 +161,11 @@ class RBM:
 
     # Create a matrix, where each row is to be a sample of of the visible units 
     # (with an extra bias unit), initialized to all ones.
-    samples = np.ones((num_samples, self.num_visible + 1))
+    samples = np.ones((num_samples, self.num_visible))# + 1))
 
     # Take the first sample from a uniform distribution.
-    samples[0,1:] = np.random.rand(self.num_visible)
+    #1:]
+    samples[0,:] = np.random.rand(self.num_visible)
 
     # Start the alternating Gibbs sampling.
     # Note that we keep the hidden units binary states, but leave the
@@ -179,18 +180,18 @@ class RBM:
       # Calculate the probabilities of turning the hidden units on.
       hidden_probs = self._logistic(hidden_activations)
       # Turn the hidden units on with their specified probabilities.
-      hidden_states = hidden_probs > np.random.rand(self.num_hidden + 1)
+      hidden_states = hidden_probs > np.random.rand(self.num_hidden )#+ 1)
       # Always fix the bias unit to 1.
-      hidden_states[0] = 1
+      #hidden_states[0] = 1
 
       # Recalculate the probabilities that the visible units are on.
       visible_activations = np.dot(hidden_states, self.weights.T)
       visible_probs = self._logistic(visible_activations)
-      visible_states = visible_probs > np.random.rand(self.num_visible + 1)
+      visible_states = visible_probs > np.random.rand(self.num_visible )#+ 1)
       samples[i,:] = visible_states
 
     # Ignore the bias units (the first column), since they're always set to 1.
-    return samples[:,1:]        
+    return samples[:,:]#1:]
       
   def _logistic(self, x):
     return 1.0 / (1 + np.exp(-x))
