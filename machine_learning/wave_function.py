@@ -11,6 +11,7 @@ class Psi(object):
         self.size = n
         self.basis = self.generate()
         self.weights = self.gen_weights()
+        self.normalize()
         self.Hamiltonian = self.get_ham(h)
         self.ground = []#self.get_ground()
         self.collapsed = self.collapse_on_axis()
@@ -86,7 +87,14 @@ class Psi(object):
         :return: psi representing weights
         """
         psi = [1 for _ in range(2**self.size)]
-        return np.array(psi).reshape((len((psi)), 1))
+        return np.array(psi, dtype=np.float128).reshape((len((psi)), 1))
+
+    def normalize(self):
+        """
+        normalize wavefunction
+        :return:
+        """
+        self.weights = self.weights / np.sqrt(np.dot(self.weights.T, self.weights))
 
     def binary_to_int(self, state):
         """
