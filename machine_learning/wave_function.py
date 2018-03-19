@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 import hamiltonian.tfim as tfim
-
+from scipy import linalg
 
 
 
@@ -119,6 +119,15 @@ class Psi(object):
         row_wise = np.sum(ham, axis=1)
         end = np.add(column_wise, row_wise)
         return end
+
+    def diag(self):
+        """
+        diagonalizes ham
+        :return:
+        """
+        E, v = linalg.eigh(self.Hamiltonian.todense())
+        E = sorted(E)
+        return E[0]
 
 
 

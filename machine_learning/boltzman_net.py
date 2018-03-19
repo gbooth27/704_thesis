@@ -4,8 +4,8 @@ import numpy as np
 import scipy as sp
 import progressbar
 
-N = 3
-M = N*N
+N = 10
+M = N//2
 psi = wave.Psi(N, 2)
 psi_2 = wave.Psi(N, 2)
 
@@ -96,18 +96,20 @@ if __name__ == '__main__':
     #print(np.dot(norm_psi.T, norm_psi))
     params = np.ones(((N*M)+N+M, 1), dtype=np.float128)
     print(energy_function(params))
-    min_rbm = sp.optimize.minimize(energy_function, params, options={'disp': True})
+    min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS',options={'disp': True})
     print("Result: " + str(min_rbm.x))
     print(energy_function(min_rbm.x))
 
     print("#########################################################")
 
 
-    min = sp.optimize.minimize(psi_2.min_energy, psi_2.weights, options={'disp': True})
-    print("#########################################################")
-    res = np.reshape(min.x, (len(min.x), 1))
+    #min = sp.optimize.minimize(psi_2.min_energy, psi_2.weights, method='BFGS',options={'disp': True})
+    #print("#########################################################")
+    #res = np.reshape(min.x, (len(min.x), 1))
 
-    norm = np.dot(res.T, res)
-    print("Result: " + str(min.x/norm))
-    print(psi_2.min_energy(res))
+    #norm = np.dot(res.T, res)
+    #print("Result: " + str(min.x/norm))
+   # print(psi_2.min_energy(res))
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(psi_2.diag())
 
