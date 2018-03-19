@@ -92,7 +92,7 @@ class Psi(object):
         :return: psi representing weights
         """
         psi = [1 for _ in range(2**self.size)]
-        return np.array(psi, dtype=np.float256).reshape((len((psi)), 1))
+        return np.array(psi, dtype=np.float128).reshape((len((psi)), 1))
 
     def normalize(self):
         """

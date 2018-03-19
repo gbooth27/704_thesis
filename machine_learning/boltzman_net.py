@@ -5,7 +5,7 @@ import scipy as sp
 import progressbar
 from matplotlib import pyplot as plt
 
-N = 8
+N = 6
 M = N
 psi = wave.Psi(N, 2)
 psi_2 = wave.Psi(N, 2)
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     y_1 = [actual for _ in range(N)]
     for i in range(N):
         M = i
-        params = np.ones(((N*M)+N+M, 1), dtype=np.float256)
+        params = np.ones(((N*M)+N+M, 1), dtype=np.float128)
         print(energy_function(params))
         min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS',options={'disp': True})
         #print("Result: " + str(min_rbm.x))
