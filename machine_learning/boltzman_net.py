@@ -3,9 +3,10 @@ import machine_learning.wave_function as wave
 import numpy as np
 import scipy as sp
 import progressbar
+from matplotlib import pyplot as plt
 
-N = 10
-M = N//2
+N = 8
+M = N
 psi = wave.Psi(N, 2)
 psi_2 = wave.Psi(N, 2)
 
@@ -39,8 +40,6 @@ def energy_function(params):
 
     wieghts = np.reshape(wieghts, (N,M))
 
-
-
     #wieghts = np.reshape(np.array(w[0:val]),(N,M))
     #params_copy = np.copy(params).reshape(((N * M) + N + M, 1))
 
@@ -48,9 +47,9 @@ def energy_function(params):
     B = params_copy[(N*M)+N:]
     # get wave then energy
     wave = construct_wave(wieghts, psi, A, B)
-    un_norm = np.dot(np.dot(wave.T, psi.Hamiltonian.toarray()), wave)
-    #norm = un_norm / np.dot(wave.T, wave)
-    return un_norm
+    un_norm = np.dot(wave.T, psi.Hamiltonian.dot(wave))
+    norm = un_norm / np.dot(wave.T, wave)
+    return norm
 
 
 
@@ -66,6 +65,8 @@ def construct_wave(weights, psi_target, a, b):
     #bar = progressbar.ProgressBar()
     for n in range(2 ** psi_target.size):
         F = 1
+        cosh_mini_sum = 0
+        exp_mini_sum = 0
         # iterate through each of the M weights
         for i in range(weights.shape[1]):
             cosh_mini_sum = 0
@@ -82,7 +83,8 @@ def construct_wave(weights, psi_target, a, b):
         # get the coefficient
         psi_n = np.exp(exp_mini_sum)*F
         psi_target.weights[n] = psi_n
-    return psi_target.weights/np.sqrt(np.dot(psi_target.weights.T, psi_target.weights))
+    #return psi_target.weights/np.sqrt(np.dot(psi_target.weights.T, psi_target.weights))
+    return psi_target.weights
 
 
 if __name__ == '__main__':
@@ -94,11 +96,24 @@ if __name__ == '__main__':
     #norm_psi = psi.weights/np.sqrt(dot)
     #print(norm_psi)
     #print(np.dot(norm_psi.T, norm_psi))
-    params = np.ones(((N*M)+N+M, 1), dtype=np.float128)
-    print(energy_function(params))
-    min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS',options={'disp': True})
-    print("Result: " + str(min_rbm.x))
-    print(energy_function(min_rbm.x))
+    actual = psi_2.diag()
+    x = []
+    y = []
+    y_1 = [actual for _ in range(N)]
+    for i in range(N):
+        M = i
+        params = np.ones(((N*M)+N+M, 1), dtype=np.float256)
+        print(energy_function(params))
+        min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS',options={'disp': True})
+        #print("Result: " + str(min_rbm.x))
+        y_i = energy_function(min_rbm.x)[0][0]
+        y.append(y_i)
+        x.append(i)
+    plt.plot(x, y, "bo")
+    plt.plot(x, y_1, "go")
+    plt.show()
+
+
 
     print("#########################################################")
 
@@ -110,6 +125,6 @@ if __name__ == '__main__':
     #norm = np.dot(res.T, res)
     #print("Result: " + str(min.x/norm))
    # print(psi_2.min_energy(res))
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print(psi_2.diag())
+    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    #print(psi_2.diag())
 

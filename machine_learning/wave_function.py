@@ -17,7 +17,12 @@ class Psi(object):
         self.collapsed = self.collapse_on_axis()
 
     def min_energy(self, p):
-        un_norm = np.dot(np.dot(p.T, self.Hamiltonian.toarray()), p)
+        """
+        get the min energy
+        :param p:
+        :return:
+        """
+        un_norm = np.dot(p.T, self.Hamiltonian.dot(p))
         norm = un_norm / np.dot(p.T, p)
         return norm
 
@@ -87,7 +92,7 @@ class Psi(object):
         :return: psi representing weights
         """
         psi = [1 for _ in range(2**self.size)]
-        return np.array(psi, dtype=np.float128).reshape((len((psi)), 1))
+        return np.array(psi, dtype=np.float256).reshape((len((psi)), 1))
 
     def normalize(self):
         """
