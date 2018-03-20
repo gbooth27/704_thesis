@@ -5,7 +5,7 @@ import scipy as sp
 import progressbar
 from matplotlib import pyplot as plt
 
-N = 6
+N = 7
 M = N
 psi = wave.Psi(N, 2)
 psi_2 = wave.Psi(N, 2)
@@ -30,7 +30,8 @@ def run_rbm(psi_):
 
 def energy_function(params):
     """
-
+    get the energy of the RBM system by constructing the wave then finding energy
+    with the hamiltonian
     :param params:
     :return:
     """
@@ -58,7 +59,10 @@ def construct_wave(weights, psi_target, a, b):
     Constructs the wavefunction in the manner outlined in the paper
     "Solving the quantum many-body problem with artificial neural networks"
     by Carleo and Troyer
-    :param net:
+    :param weights: weights of the RBM to be optimized
+    :param psi_target: target wavefunction to optimize against
+    :param a: visible layers
+    :param b: hidden layers
     :return:
     """
     # iterate over the entire psi
@@ -83,7 +87,6 @@ def construct_wave(weights, psi_target, a, b):
         # get the coefficient
         psi_n = np.exp(exp_mini_sum)*F
         psi_target.weights[n] = psi_n
-    #return psi_target.weights/np.sqrt(np.dot(psi_target.weights.T, psi_target.weights))
     return psi_target.weights
 
 
@@ -99,8 +102,9 @@ if __name__ == '__main__':
     actual = psi_2.diag()
     x = []
     y = []
-    y_1 = [actual for _ in range(N)]
-    for i in range(N):
+    y_1 = [actual for _ in range(N+2)]
+    bar = progressbar.ProgressBar()
+    for i in bar(range(N+2)):
         M = i
         params = np.ones(((N*M)+N+M, 1), dtype=np.float128)
         print(energy_function(params))
@@ -109,11 +113,9 @@ if __name__ == '__main__':
         y_i = energy_function(min_rbm.x)[0][0]
         y.append(y_i)
         x.append(i)
-    plt.plot(x, y, "bo")
-    plt.plot(x, y_1, "go")
+    plt.plot(x, y, "b")
+    plt.plot(x, y_1, "g")
     plt.show()
-
-
 
     print("#########################################################")
 

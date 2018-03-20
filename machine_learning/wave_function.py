@@ -127,8 +127,9 @@ class Psi(object):
 
     def diag(self):
         """
-        diagonalizes ham
-        :return:
+        diagonalizes hamiltonian then returns the ground state energy of
+        the system
+        :return: ground state energy
         """
         E, v = linalg.eigh(self.Hamiltonian.todense())
         E = sorted(E)
