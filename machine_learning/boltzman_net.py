@@ -5,7 +5,7 @@ import scipy as sp
 import progressbar
 from matplotlib import pyplot as plt
 
-N = 7
+N = 10
 M = N
 psi = wave.Psi(N, 2)
 psi_2 = wave.Psi(N, 2)
@@ -102,9 +102,9 @@ if __name__ == '__main__':
     actual = psi_2.diag()
     x = []
     y = []
-    y_1 = [actual for _ in range(N+2)]
+    y_1 = [actual for _ in range((N+2)//2)]
     bar = progressbar.ProgressBar()
-    for i in bar(range(N+2)):
+    for i in bar(range((N+2)//2)):
         M = i
         params = np.ones(((N*M)+N+M, 1), dtype=np.float128)
         print(energy_function(params))
