@@ -18,14 +18,14 @@ from matplotlib import pyplot as plt
 
 import progressbar
 
-DIM = 9
+DIM = 5
 psi = wave.Psi(DIM, 2)
 psi.collapse_on_axis()
 
 
 def min_energy(p):
     un_norm = np.dot(np.dot(p.T, psi.Hamiltonian.toarray()), p)
-    norm = un_norm / math.sqrt(np.dot(p.T, p))
+    norm = un_norm / np.dot(p.T, p)
     return norm
 
 def energy_sample(y_true, y_pred):
@@ -61,8 +61,10 @@ def run_approx_nnet(x, gpu, m, backend):
         model.add(Dense(dim2, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dropout(0.1, noise_shape=None, seed=None))
         model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
-        #model.add(Dropout(0.1, noise_shape=None, seed=None))
-        #model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dropout(0.1, noise_shape=None, seed=None))
+        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))
 
         # Set the optimizer.
@@ -151,31 +153,31 @@ if __name__ == '__main__':
     parser.add_argument('--tensorflow', "-tf", dest='tf', action='store_true', help="if using tensorflow backend")
     args = parser.parse_args()
 
-    if args.ground=="":
+    """if args.ground=="":
         psi.get_ground()
         np.save("ground_states/ground_"+str(DIM),psi.ground)
     else:
         psi.ground = np.load(args.ground)
-
+    """
     # Predict the coefficients
     model = run_approx_nnet(psi.basis, True, "", args.tf)
     pred = model.predict(psi.basis)
-    pred = pred / math.sqrt(np.dot(pred.T, pred))
+    #pred = pred / math.sqrt(np.dot(pred.T, pred))
     print("#########################################################")
     # get energy of prediction
     min = min_energy(pred)[0][0]
     # find the best energy of the neural net
     print(min)
-    actual_min = min_energy(psi.ground)
+    actual_min = psi.diag()
     print(actual_min)
     # error calc
     print(100*(1 - min/actual_min))
 
     print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-    print(np.dot(psi.ground.T, psi.collapsed))
+    #print(np.dot(psi.ground.T, psi.collapsed))
     print()
 
 
-    arr = psi.ground/math.sqrt(np.dot(psi.ground.T, psi.ground))
-    print(np.dot(arr.T, arr))
+    #arr = psi.ground/math.sqrt(np.dot(psi.ground.T, psi.ground))
+    #print(np.dot(arr.T, arr))
