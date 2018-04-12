@@ -5,7 +5,7 @@ import scipy as sp
 import progressbar
 from matplotlib import pyplot as plt
 
-N = 4
+N = 6
 M = N
 psi = wave.Psi(N, 2)
 psi_2 = wave.Psi(N, 2)
@@ -182,22 +182,28 @@ if __name__ == '__main__':
     #info = np.core.getlimits._float128_ma
     y_1 = [actual for _ in range(2*N)]
     #bar = progressbar.ProgressBar()
-    for i in range(1, 2*N):
+    for i in range(1, N):
         M = i
-        params = np.random.rand(((N*M)+N+M))/10000#,), dtype=np.float128)
+        params = np.random.rand(((N*M)+N+M))/1000#,), dtype=np.float128)
         check = sp.optimize.check_grad(energy_function, build_jac, params)
         print ("Grad Check: "+str(check))
+        #jac = build_jac,
         #print(energy_function(params))
-        min_rbm = sp.optimize.minimize(energy_function, params, jac = build_jac, method='CG',
-                                        options={'disp': True})
+        min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS',
+                                        options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
+                                                 'return_all': False, 'maxiter': None})
         #print("Result: " + str(min_rbm.x))
         y_i = energy_function(min_rbm.x)[0][0]
-        print("Parameters: "+str(params))
-        print("Gradient: "+ str(build_jac(params)))
+        #print(y_i)
+        #y_i = np.log(y_i)
+        #print(y_i)
+        #print("Parameters: "+str(params))
+        #print("Gradient: "+ str(build_jac(params)))
         y.append(y_i)
         x.append(i)
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    ax.set_yscale('log')
     ax.set_xlabel('Number of Hidden Units')
     ax.set_ylabel('Percent Error from True Energy')
     #for i in range(len(y)):
@@ -207,7 +213,7 @@ if __name__ == '__main__':
     ax.plot(x, np.abs(y_new), color='b', marker='o', linestyle='solid',
         linewidth=2, markersize=5)
     #ax.plot(x, np.log(np.abs(y_1)), "g")
-    xmarks = [i for i in range(1, 2*N, 1)]
+    xmarks = [i for i in range(1, N, 1)]
     plt.xticks(xmarks)
     plt.show()
 
