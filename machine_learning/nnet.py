@@ -29,7 +29,7 @@ class CustomMetrics(cbks.Callback):
 
 
 # https://keras.io/layers/recurrent/
-DIM = 9
+DIM = 6
 psi = wave.Psi(DIM, 2)
 
 def energy(y_true, y_pred):
@@ -107,9 +107,10 @@ def run_nnet(x, gpu, m, backend):
         model.add(Dropout(0.1, noise_shape=None, seed=None))
         model.add(Dense(2**DIM, kernel_initializer='random_uniform', activation="relu"))#output_dim = (dim1,dim2)))
         # Normalize the output vector PSI
-        model.add(keras.layers.BatchNormalization())
-        # Make sure that it is of the correct shape.
-        model.add(keras.layers.Reshape((dim1, 1)))
+        model.add(Dense(1, kernel_initializer='random_uniform', activation='relu'))
+        #model.add(keras.layers.BatchNormalization())
+        # Make sure that it is of the correct shape.\
+        #model.add(keras.layers.Reshape((dim1, 1)))
 
         # Set the optimizer.
         sgd = optimizers.Adam()
@@ -124,7 +125,7 @@ def run_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_mem(256, DIM), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_mem(2**DIM, DIM), steps_per_epoch=DIM, epochs=10)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
             model.fit_generator(gen.generator_mem(8, DIM), steps_per_epoch=DIM, epochs=10, verbose=2)

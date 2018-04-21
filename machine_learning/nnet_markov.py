@@ -16,11 +16,12 @@ import numpy as np
 import argparse
 from matplotlib import pyplot as plt
 
+
 import progressbar
 
-DIM = 5
-psi = wave.Psi(DIM, 2)
-psi.collapse_on_axis()
+N = 12
+psi = wave.Psi(N, 2)
+#psi.collapse_on_axis()
 
 
 def min_energy(p):
@@ -36,7 +37,17 @@ def energy_sample(y_true, y_pred):
     :return:
     """
     #return (y_pred * y_true)
-    return K.dot(K.transpose(y_pred),y_true)
+    #tf_session = K.get_session()
+    # Put hamiltonian into tensor form
+    ham = K.variable(psi.Hamiltonian.toarray())
+    #s = K.shape(ham).eval(session=tf_session)
+    #y_pred = K.repeat_elements(y_pred, 2**N, 1)
+    #y_pred = K.reshape(y_pred, (s[1], -1))
+    un_norm = K.dot(K.dot(K.transpose(y_pred), ham), y_pred)
+    norm = un_norm / K.sqrt(K.sum(K.square(y_pred)))
+
+    return K.sum(norm)
+    #return K.dot(K.transpose(y_pred),y_true)
 
 
 def run_approx_nnet(x, gpu, m, backend):
@@ -59,16 +70,17 @@ def run_approx_nnet(x, gpu, m, backend):
         dim2 = len(x[0])
         # Add the layers.
         model.add(Dense(dim2, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dropout(0.1, noise_shape=None, seed=None))
-        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dropout(0.1, noise_shape=None, seed=None))
-        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(DIM, kernel_initializer='random_uniform', activation='relu'))
-        model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))
+        #model.add(Dropout(0.1, noise_shape=None, seed=None))
+        model.add(Dense(N, kernel_initializer='random_uniform', activation='relu'))
+        #model.add(Dropout(0.1, noise_shape=None, seed=None))
+        #model.add(Dense(N*N, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(N, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(N, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(1, kernel_initializer='random_uniform', activation="tanh"))
 
         # Set the optimizer.
         opt = optimizers.Adam()
+        #opt = optimizers.sgd()
         # Compile model.
         if backend:
             model.compile(loss=energy_sample, optimizer=opt)
@@ -80,10 +92,10 @@ def run_approx_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_approx(128, psi), steps_per_epoch=DIM, epochs=15)
+            model.fit_generator(gen.generator_mem_sequential(2**N, N), steps_per_epoch=3, epochs=10)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
-            model.fit_generator(gen.generator_approx(128, psi), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_mem_sequential(2**N, psi), steps_per_epoch=N, epochs=10)
             #model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
         # Fit the model.
@@ -117,7 +129,7 @@ def run_nnet(x, gpu, m, backend):
         # Add the layers.
         model.add(Dense(dim2, input_dim = dim2, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dropout(0.1, noise_shape=None, seed=None))
-        model.add(Dense(DIM//2, kernel_initializer='random_uniform', activation='relu'))
+        model.add(Dense(N // 2, kernel_initializer='random_uniform', activation='relu'))
         model.add(Dense(1, kernel_initializer='random_uniform', activation="relu"))
 
         # Set the optimizer.
@@ -133,10 +145,10 @@ def run_nnet(x, gpu, m, backend):
         # Fit the model.
         # DO NOT CHANGE GPU BATCH SIZE, CAN CAUSE MEMORY ISSUES
         if backend:
-            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size)/DIM, epochs=30)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=(2**psi.size) / N, epochs=30)
             #model.fit(x, y, epochs=10, batch_size=128, verbose=1)
         else:
-            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=DIM, epochs=10)
+            model.fit_generator(gen.generator_precompute(128, psi), steps_per_epoch=N, epochs=10)
             #model.fit(x, y, epochs=400, batch_size=128, verbose=1 , validation_split=0.2)
     else:
         # Fit the model.
