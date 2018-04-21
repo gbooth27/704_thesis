@@ -19,7 +19,7 @@ from matplotlib import pyplot as plt
 
 import progressbar
 
-N = 12
+N = 8
 psi = wave.Psi(N, 2)
 #psi.collapse_on_axis()
 
