@@ -4,11 +4,13 @@ import numpy as np
 import scipy as sp
 import progressbar
 from matplotlib import pyplot as plt
+import hamiltonian.tfim as tfim
 
 N = 7
 M = N
-psi = wave.Psi(N, 1)
-psi_2 = wave.Psi(N, 1)
+H= 1
+psi = wave.Psi(N, H)
+psi_2 = wave.Psi(N, H)
 
 
 def run_rbm(psi_):
@@ -170,68 +172,102 @@ def construct_wave(weights, psi_target, a, b):
         psi_target.weights[n] = psi_n
     return psi_target.weights
 
+def tfim_builder(N):
+    out_filename_base = "../hamiltonian/matrix"
+    L = [N]
+    PBC = True
+    J = 1.0
+    # Set up file formatting
+    ##################################
+    width = 25
+    precision = 16
+    header = tfim.build_header(L, PBC, J)
+    ##################################
+
+    # Build lattice and basis
+    ###################################
+    lattice = tfim.Lattice(L, PBC)
+    N = lattice.N
+    basis = tfim.IsingBasis(lattice)
+    ###################################
+
+    # Compute diagonal matrix elements
+    ###################################
+    print('\tBuilding diagonal matrices...')
+    Mz_ME, Ms_ME = tfim.z_magnetizations_ME(lattice, basis)
+    JZZ_ME, ZZ_ME = tfim.z_correlations_NN_ME(lattice, basis, J)
+
+    # Write to disk
+    columns = ['JZZ', 'ZZ', 'Mz', 'Ms']
+    diagonal_arr = np.array([JZZ_ME, ZZ_ME, Mz_ME, Ms_ME]).T
+    diag_filename = out_filename_base + tfim.diag_ME_suffix
+    col_labels = ''.join(['{:>{width}}'.format(tfim.phys_labels[key],
+                                               width=(width + 1)) for key in columns])[3:]
+    print("\tWriting diagonal matrix elements to {}".format(diag_filename))
+    np.savetxt(diag_filename, diagonal_arr, header=(header + col_labels),
+               fmt='%{}.{}e'.format(width, precision - 1))
+    ###################################
+
+    # Compute off-diagonal matrix elements
+    ###################################
+    print('\tBuilding off-diagonal matrices...')
+    Mx = tfim.build_Mx(lattice, basis)
+
+    # Write to disk
+    Mx_filename = out_filename_base + tfim.Mx_suffix
+    print("\tWriting off-diagonal matrix to {}".format(Mx_filename))
+    tfim.save_sparse_matrix(Mx_filename, Mx)
+    ###################################
+
 
 if __name__ == '__main__':
 
-    #net = run_rbm(psi)
-    #construct_wave(net, psi)
-    #print(psi.min_energy(psi.weights))
-    #dot = np.dot(psi.weights.T, psi.weights)
-    #norm_psi = psi.weights/np.sqrt(dot)
-    #print(norm_psi)
-    #print(np.dot(norm_psi.T, norm_psi))
-    actual = psi_2.diag()
-    x = []
-    y = []
-    #info = np.core.getlimits._float128_ma
-    y_1 = [actual for _ in range(2*N)]
-    bar = progressbar.ProgressBar()
-    for i in bar(range(1, N)):
-        M = i
-        params = np.random.rand(((N*M)+N+M))/1000#,), dtype=np.float128)
-        #check = sp.optimize.check_grad(energy_function, build_jac, params)
-        #print ("Grad Check: "+str(check))
-        #jac = build_jac,
-        #print(energy_function(params))
-        min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS', options={'disp': True, 'maxiter': 10000000})#,
-                                       #jac=build_jac)
-                                        #options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
-                                                 #'return_all': False, 'maxiter': None})
-        #print("Result: " + str(min_rbm.x))
-        y_i = energy_function(min_rbm.x)[0][0]
-        #print(y_i)
-        #y_i = np.log(y_i)
-        #print(y_i)
-        #print("Parameters: "+str(params))
-        #print("Gradient: "+ str(build_jac(params)))
-        y.append(y_i)
-        x.append(i)
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.set_yscale('log')
-    ax.set_xlabel('Number of Hidden Units')
-    ax.set_ylabel('Percent Error from True Energy')
-    #for i in range(len(y)):
-    #    y[i] = np.log(y[i])
-    #l = np.log(np.asarray(y))
-    y_new = [((y[i]-y_1[i])/y_1[i])*100 for i in range(len(y))]
-    ax.plot(x, np.abs(y_new), color='b', marker='o', linestyle='solid',
-        linewidth=2, markersize=5)
-    #ax.plot(x, np.log(np.abs(y_1)), "g")
-    xmarks = [i for i in range(1, N, 1)]
-    plt.xticks(xmarks)
-    plt.show()
+    n_s = [5,6,7,8]
+    h_s = [0.5, 1,2]
+    for h in h_s:
+        for n in n_s:
+            N = n
+            H = h
+            tfim_builder(N)
+            psi = wave.Psi(N, H)
+            psi_2 = wave.Psi(N, H)
 
-    print("#########################################################")
+            actual = psi_2.diag()
+            x = []
+            y = []
+            #info = np.core.getlimits._float128_ma
+            y_1 = [actual for _ in range(2*N)]
+            bar = progressbar.ProgressBar()
+            for i in bar(range(1, N)):
+                M = i
+                params = np.random.rand(((N*M)+N+M))/1000#,), dtype=np.float128)
+                #check = sp.optimize.check_grad(energy_function, build_jac, params)
+                #print ("Grad Check: "+str(check))
+                #jac = build_jac,
+                #print(energy_function(params))
+                min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS', options={'disp': True, 'maxiter': 10000000})#,
+                                               #jac=build_jac)
+                                                #options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
+                                                         #'return_all': False, 'maxiter': None})
+                #print("Result: " + str(min_rbm.x))
+                y_i = energy_function(min_rbm.x)[0][0]
+                y.append(y_i)
+                x.append(i)
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.set_yscale('log')
+            ax.set_xlabel('Number of Hidden Units')
+            ax.set_ylabel('Percent Error from True Energy')
+            y_new = [((y[i]-y_1[i])/y_1[i])*100 for i in range(len(y))]
+            ax.plot(x, np.abs(y_new), color='b', marker='o', linestyle='solid',
+                linewidth=2, markersize=5)
+            #ax.plot(x, np.log(np.abs(y_1)), "g")
+            xmarks = [i for i in range(1, N, 1)]
+            plt.xticks(xmarks)
+            #plt.show()
+            fig.savefig('graphs/graph_spin_'+str(N)+'_h_'+str(h)+'.png', bbox_inches='tight')
+            fig.savefig('graphs/graph_spin_' + str(N) + '_h_' + str(h) + '.pdf', bbox_inches='tight')
 
+            print("#########################################################")
 
-    #min = sp.optimize.minimize(psi_2.min_energy, psi_2.weights, method='BFGS',options={'disp': True})
-    #print("#########################################################")
-    #res = np.reshape(min.x, (len(min.x), 1))
-
-    #norm = np.dot(res.T, res)
-    #print("Result: " + str(min.x/norm))
-   # print(psi_2.min_energy(res))
-    #print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    #print(psi_2.diag())
 
