@@ -208,8 +208,10 @@ if __name__ == '__main__':
 
     n_s = [5,6,7,8]
     h_s = [0.5, 1,2]
-    for h in h_s:
-        for n in n_s:
+    bar_1 = progressbar.ProgressBar()
+    bar_2 = progressbar.ProgressBar()
+    for h in bar_1(h_s):
+        for n in bar_2(n_s):
             N = n
             H = h
             tfim_builder(N)
@@ -221,8 +223,8 @@ if __name__ == '__main__':
             y = []
             #info = np.core.getlimits._float128_ma
             y_1 = [actual for _ in range(2*N)]
-            bar = progressbar.ProgressBar()
-            for i in bar(range(1, N)):
+            #bar = progressbar.ProgressBar()
+            for i in range(1, N):
                 M = i
                 params = np.random.rand(((N*M)+N+M))/1000#,), dtype=np.float128)
                 #check = sp.optimize.check_grad(energy_function, build_jac, params)
