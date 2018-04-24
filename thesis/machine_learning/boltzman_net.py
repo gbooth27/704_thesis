@@ -9,8 +9,8 @@ import thesis.hamiltonian.tfim as tfim
 N = 7
 M = N
 H= 1
-psi = wave.Psi(N, H)
-psi_2 = wave.Psi(N, H)
+psi = None#wave.Psi(N, H)
+psi_2 = None #wave.Psi(N, H)
 
 
 def build_jac(X):
