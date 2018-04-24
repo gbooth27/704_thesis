@@ -6,3 +6,4 @@ venv
 venv*
 machine_learning/ground_states/ground_*
 graph*
+thesis/venv
