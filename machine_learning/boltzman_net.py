@@ -1,4 +1,4 @@
-import rbm.rbm as rbm
+
 import machine_learning.wave_function as wave
 import numpy as np
 import scipy as sp
@@ -12,22 +12,6 @@ H= 1
 psi = wave.Psi(N, H)
 psi_2 = wave.Psi(N, H)
 
-
-def run_rbm(psi_):
-    """
-    Sets up and runs an RBM based on wavefunction PSI
-    :param psi_: wavefunction
-    :return:
-    """
-    # Create the RBM with N visible and 2N hidden
-    net = rbm.RBM(num_visible=psi_.size, num_hidden=2 * psi_.size)
-    net.train(psi_.basis, max_epochs=1000)
-    print(net.weights)
-    print('########################################################')
-    test = psi_.basis[10].reshape((psi_.size, 1)).T
-    print(test)
-    print(net.run_visible(test))
-    return net
 
 def build_jac(X):
     """
