@@ -253,8 +253,8 @@ if __name__ == '__main__':
             xmarks = [i for i in range(1, N, 1)]
             plt.xticks(xmarks)
             #plt.show()
-            fig.savefig('graphs/graph_spin_'+str(N)+'_h_'+str(h)+'.png', bbox_inches='tight')
-            fig.savefig('graphs/graph_spin_' + str(N) + '_h_' + str(h) + '.pdf', bbox_inches='tight')
+            fig.savefig('thesis/machine_learning/graphs/graph_spin_'+str(N)+'_h_'+str(h)+'.png', bbox_inches='tight')
+            fig.savefig('thesis/machine_learning/graphs/graph_spin_' + str(N) + '_h_' + str(h) + '.pdf', bbox_inches='tight')
 
             print("#########################################################")
 
