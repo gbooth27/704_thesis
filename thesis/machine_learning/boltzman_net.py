@@ -157,7 +157,7 @@ def construct_wave(weights, psi_target, a, b):
     return psi_target.weights
 
 def tfim_builder(N):
-    out_filename_base = "../hamiltonian/matrix"
+    out_filename_base = "thesis/hamiltonian/matrix"
     L = [N]
     PBC = True
     J = 1.0
