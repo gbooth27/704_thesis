@@ -3,6 +3,8 @@ import thesis.machine_learning.wave_function as wave
 import numpy as np
 import scipy as sp
 import progressbar
+import matplotlib as mpl
+mpl.use('Agg')
 from matplotlib import pyplot as plt
 import thesis.hamiltonian.tfim as tfim
 
@@ -206,8 +208,8 @@ def tfim_builder(N):
 
 if __name__ == '__main__':
 
-    n_s = [5,6,7,8]
-    h_s = [0.5, 1,2]
+    n_s = [4]
+    h_s = [2]
     bar_1 = progressbar.ProgressBar()
     bar_2 = progressbar.ProgressBar()
     for h in bar_1(h_s):
