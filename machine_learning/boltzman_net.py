@@ -5,7 +5,7 @@ import scipy as sp
 import progressbar
 from matplotlib import pyplot as plt
 
-N = 6
+N = 7
 M = N
 psi = wave.Psi(N, 1)
 psi_2 = wave.Psi(N, 1)
@@ -164,7 +164,7 @@ def construct_wave(weights, psi_target, a, b):
             cosh_mini_sum+=b[i]
             # do the successive product
             f_i = np.nan_to_num(2* np.cosh(cosh_mini_sum))
-            F *= f_i
+            F =np.nan_to_num(F* f_i)
         # get the coefficient
         psi_n = np.nan_to_num(np.exp(exp_mini_sum)*F)
         psi_target.weights[n] = psi_n
@@ -193,7 +193,7 @@ if __name__ == '__main__':
         #print ("Grad Check: "+str(check))
         #jac = build_jac,
         #print(energy_function(params))
-        min_rbm = sp.optimize.minimize(energy_function, params,  method='COBYLA', options={'disp': True, 'maxiter': 10000000})#,
+        min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS', options={'disp': True, 'maxiter': 10000000})#,
                                        #jac=build_jac)
                                         #options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
                                                  #'return_all': False, 'maxiter': None})
