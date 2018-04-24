@@ -5,5 +5,4 @@ hamiltonian/matrix_Mx.npz
 venv
 venv*
 machine_learning/ground_states/ground_*
-graph*
 thesis/venv
