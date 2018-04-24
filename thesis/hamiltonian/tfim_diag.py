@@ -6,7 +6,7 @@
     --Exact diagonalization for transverse field Ising models
     --Requires: tfim.py, numpy, scipy.sparse, scipy.linalg, progressbar
 """
-import hamiltonian.tfim as tfim
+import thesis.hamiltonian.tfim as tfim
 import numpy as np
 from scipy import sparse
 from scipy.sparse import linalg as spla

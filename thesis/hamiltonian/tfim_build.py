@@ -8,7 +8,7 @@
         --Requires: tfim.py, numpy, scipy.sparse, scipy.linalg, progressbar
 """
 
-import hamiltonian.tfim as tfim
+import thesis.hamiltonian.tfim as tfim
 import numpy as np
 import scipy.sparse
 import argparse
