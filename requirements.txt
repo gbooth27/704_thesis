@@ -4,4 +4,3 @@ matplotlib
 scipy
 progressbar2
 tensorflow
-matplotlib

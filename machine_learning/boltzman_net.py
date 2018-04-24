@@ -7,8 +7,8 @@ from matplotlib import pyplot as plt
 
 N = 6
 M = N
-psi = wave.Psi(N, 2)
-psi_2 = wave.Psi(N, 2)
+psi = wave.Psi(N, 1)
+psi_2 = wave.Psi(N, 1)
 
 
 def run_rbm(psi_):
@@ -58,16 +58,20 @@ def build_jac(X):
             # derivative wrt weights
             if y < (N*M):
                 sigma = int(spin[y%N])
+                if sigma == 0:
+                    sigma = -1
                 tan_sum = 0
                 for i in range(N):
                     tan_sum += X[i] * int(spin[i])
 
 
-                jac[x][y] = sigma*np.tanh(X[y] + tan_sum)  *wave[x]
+                jac[x][y] = sigma*np.nan_to_num(np.tanh(X[y] + tan_sum)  *wave[x])
 
             # a
             elif y <(N * M) + N :
                 sigma = int(spin[y-(N * M)])
+                if sigma == 0:
+                    sigma = -1
                 jac[x][y] = sigma *wave[x]
 
 
@@ -77,7 +81,7 @@ def build_jac(X):
                 for i in range(N):
                     tan_sum += X[i] * int(spin[i])
 
-                jac[x][y] = np.tanh(X[y] + tan_sum) * wave[x]
+                jac[x][y] = np.nan_to_num(np.tanh(X[y] + tan_sum) * wave[x])
 
 
     jac = (jac)
@@ -86,19 +90,19 @@ def build_jac(X):
     ham = psi.Hamiltonian
     jac_f = (np.dot(jac.T, psi.Hamiltonian.dot(wave)))
     jac_int = (np.dot(wave.T, psi.Hamiltonian.dot(jac)).T)
-    d_hi =  (np.add(jac_f, jac_int))
-    lo= (np.dot(wave.T,wave))
+    d_hi =  np.nan_to_num(np.add(jac_f, jac_int))
+    lo= np.nan_to_num(np.dot(wave.T,wave))
     #if lo[0] == 0:
         #lo =1
-    d_lo = (np.dot(jac.T, wave) + np.dot(wave.T, jac).T)
-    hi = (np.dot(wave.T, psi.Hamiltonian.dot(wave)))
+    d_lo = np.nan_to_num(np.dot(jac.T, wave) + np.dot(wave.T, jac).T)
+    hi = np.nan_to_num(np.dot(wave.T, psi.Hamiltonian.dot(wave)))
 
     end = (np.ndarray.flatten(np.add(lo*d_hi, -hi*d_lo)/(lo**2)))
     #for i in range(len(end)):
         #if end[i] == 0:
             #end[i] = 1
     #print(end)
-    return end
+    return np.nan_to_num(end)
 
 
 def energy_function(params):
@@ -146,7 +150,7 @@ def construct_wave(weights, psi_target, a, b):
     #bar = progressbar.ProgressBar()
     for n in range(2 ** psi_target.size):
         F = 1
-        cosh_mini_sum = 0
+        #cosh_mini_sum = 0
         exp_mini_sum = 0
         # iterate through each of the M weights
         for i in range(weights.shape[1]):
@@ -159,10 +163,10 @@ def construct_wave(weights, psi_target, a, b):
 
             cosh_mini_sum+=b[i]
             # do the successive product
-            f_i = 2* np.cosh(cosh_mini_sum)
+            f_i = np.nan_to_num(2* np.cosh(cosh_mini_sum))
             F *= f_i
         # get the coefficient
-        psi_n = np.exp(exp_mini_sum)*F
+        psi_n = np.nan_to_num(np.exp(exp_mini_sum)*F)
         psi_target.weights[n] = psi_n
     return psi_target.weights
 
@@ -181,17 +185,18 @@ if __name__ == '__main__':
     y = []
     #info = np.core.getlimits._float128_ma
     y_1 = [actual for _ in range(2*N)]
-    #bar = progressbar.ProgressBar()
-    for i in range(1, N):
+    bar = progressbar.ProgressBar()
+    for i in bar(range(1, N)):
         M = i
         params = np.random.rand(((N*M)+N+M))/1000#,), dtype=np.float128)
-        check = sp.optimize.check_grad(energy_function, build_jac, params)
-        print ("Grad Check: "+str(check))
+        #check = sp.optimize.check_grad(energy_function, build_jac, params)
+        #print ("Grad Check: "+str(check))
         #jac = build_jac,
         #print(energy_function(params))
-        min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS',
-                                        options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
-                                                 'return_all': False, 'maxiter': None})
+        min_rbm = sp.optimize.minimize(energy_function, params,  method='COBYLA', options={'disp': True, 'maxiter': 10000000})#,
+                                       #jac=build_jac)
+                                        #options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
+                                                 #'return_all': False, 'maxiter': None})
         #print("Result: " + str(min_rbm.x))
         y_i = energy_function(min_rbm.x)[0][0]
         #print(y_i)
