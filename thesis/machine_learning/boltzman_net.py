@@ -36,7 +36,7 @@ def build_jac(X):
     B = params_copy[(N * M) + N:]
     # get wave then energy
     wave = construct_wave(wieghts, psi, A, B)
-    wave = (wave)
+    #wave = (wave)
     for x in range (2**N):
         string = "{0:0"+str(N)+"b}"
         spin = string.format(x)
@@ -50,10 +50,13 @@ def build_jac(X):
                     sigma = -1
                 tan_sum = 0
                 for i in range(N):
-                    tan_sum += X[i] * int(spin[i])
+                    s = 1
+                    if int(spin[i]) ==0:
+                        s= -1
+                    tan_sum += X[i+y-y%N] * s
 
 
-                jac[x][y] = sigma*np.nan_to_num(np.tanh(X[y] + tan_sum)  *wave[x])
+                jac[x][y] = sigma*np.nan_to_num(np.tanh(B[(y%M)] + tan_sum)  *wave[x])
 
             # a
             elif y <(N * M) + N :
@@ -67,12 +70,17 @@ def build_jac(X):
             else:
                 tan_sum = 0
                 for i in range(N):
-                    tan_sum += X[i] * int(spin[i])
+                    s = 1
+                    if int(spin[i]) == 0:
+                        s = -1
+                    e = ((N * M) + N)
+                    g = (i + y - y % N)
+                    tan_sum += X[(i+y-y%N)-((N * M) + N)] * s
 
-                jac[x][y] = np.nan_to_num(np.tanh(X[y] + tan_sum) * wave[x])
+                jac[x][y] = np.nan_to_num(np.tanh(B[(y%M)] + tan_sum) * wave[x])
 
 
-    jac = (jac)
+    #jac = (jac)
 
 
     ham = psi.Hamiltonian
@@ -85,12 +93,15 @@ def build_jac(X):
     d_lo = np.nan_to_num(np.dot(jac.T, wave) + np.dot(wave.T, jac).T)
     hi = np.nan_to_num(np.dot(wave.T, psi.Hamiltonian.dot(wave)))
 
-    end = (np.ndarray.flatten(np.add(lo*d_hi, -hi*d_lo)/(lo**2)))
+    end = np.add(lo*d_hi, -hi*d_lo)/(lo**2)
+    end = jac_f
     #for i in range(len(end)):
         #if end[i] == 0:
             #end[i] = 1
     #print(end)
-    return np.nan_to_num(end)
+    #return np.nan_to_num(end.reshape(((N * M) + N+M,)))
+    #E = energy_function(X)[0][0]
+    return np.nan_to_num(end.reshape(( (N * M) + N+M, )))#*E
 
 
 def energy_function(params):
@@ -159,7 +170,7 @@ def construct_wave(weights, psi_target, a, b):
     return psi_target.weights
 
 def tfim_builder(N):
-    out_filename_base = "thesis/hamiltonian/matrix"
+    out_filename_base = "../hamiltonian/matrix"
     L = [N]
     PBC = True
     J = 1.0
@@ -233,8 +244,8 @@ if __name__ == '__main__':
                 #print ("Grad Check: "+str(check))
                 #jac = build_jac,
                 #print(energy_function(params))
-                min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS', options={'disp': True, 'maxiter': 10000000})#,
-                                               #jac=build_jac)
+                min_rbm = sp.optimize.minimize(energy_function, params,  method='BFGS', options={'disp': True, 'maxiter': 10000000},
+                                               jac=build_jac)
                                                 #options={'disp': True, 'gtol': 1e-05, 'eps': 1.4901161193847656e-08,
                                                          #'return_all': False, 'maxiter': None})
                 #print("Result: " + str(min_rbm.x))
